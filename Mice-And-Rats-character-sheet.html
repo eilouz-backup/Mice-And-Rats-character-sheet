@@ -745,6 +745,165 @@ html, body {
   transition: all 0.15s;
 }
 .tainted-warning-btn-secondary:hover { color: var(--t-text); border-color: var(--t-text-dim); }
+
+/* ─── MUTATION LIMITED USE ──────────────── */
+.mut-limited-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.mut-limited-label {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+.mut-limited-label input[type=checkbox] {
+  accent-color: var(--amber);
+  width: 13px; height: 13px;
+  cursor: pointer;
+  margin: 0;
+}
+.mut-usage-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+.mut-type-toggle {
+  display: flex;
+  border: 1px solid var(--border-lt);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.mut-type-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.mut-type-btn.active { background: var(--amber-dim); color: var(--amber-lt); }
+.mut-used-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+.mut-used-label input[type=checkbox] {
+  accent-color: var(--amber);
+  width: 13px; height: 13px;
+  cursor: pointer;
+  margin: 0;
+}
+.mut-used-label.is-used { color: var(--text-dim); text-decoration: line-through; opacity: 0.6; }
+.mutation-card.is-used { opacity: 0.55; }
+
+/* ─── END OF ROUND BUTTONS ──────────────── */
+.round-btns {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.round-btn {
+  flex: 1;
+  padding: 7px 10px;
+  background: transparent;
+  border: 1px solid var(--border-lt);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.round-btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+.round-btn.session:hover { border-color: var(--t-red-lt); color: var(--t-red-lt); }
+
+/* ─── CONFIRM MODAL ─────────────────────── */
+#confirm-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 250;
+  align-items: center;
+  justify-content: center;
+}
+#confirm-overlay.open { display: flex; }
+#confirm-modal {
+  background: var(--bg3);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 24px 24px 18px;
+  max-width: 300px;
+  width: 90%;
+  animation: fadeIn 0.18s ease;
+}
+#confirm-text {
+  font-family: 'Cinzel', serif;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--text);
+  margin-bottom: 18px;
+  text-align: center;
+}
+#confirm-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.confirm-no-btn, .confirm-yes-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 8px 18px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 1px solid;
+  transition: all 0.15s;
+}
+.confirm-no-btn  { background: transparent; border-color: var(--border-lt); color: var(--text-dim); }
+.confirm-no-btn:hover  { color: var(--text); border-color: var(--text-dim); }
+.confirm-yes-btn { background: transparent; border-color: var(--amber-dim); color: var(--amber); }
+.confirm-yes-btn:hover { background: var(--amber-dim); color: var(--amber-lt); }
+
+/* Tainted tab limited-use display */
+.t-mut-used-badge {
+  display: inline-block;
+  font-family: 'Cinzel', serif;
+  font-size: 8px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-top: 4px;
+}
+.t-mut-used-badge.encounter { background: rgba(200,144,30,0.15); color: var(--amber-dim); }
+.t-mut-used-badge.session   { background: rgba(140,100,200,0.15); color: var(--t-text-dim); }
+.t-mut-used-badge.used      { opacity: 0.5; text-decoration: line-through; }
 </style>
 </head>
 <body>
@@ -831,6 +990,10 @@ html, body {
 
   <div class="mutations-section">
     <div class="sec-title">Mutations <span class="mutation-count" id="mut-count">(0)</span></div>
+    <div class="round-btns">
+      <button class="round-btn" onclick="endEncounter()">⚔ End of Encounter</button>
+      <button class="round-btn session" onclick="endSession()">✦ End of Session</button>
+    </div>
     <div class="mutation-list" id="mut-list"></div>
     <button class="add-btn" onclick="addMutation()">+ Add Mutation</button>
   </div>
@@ -911,6 +1074,10 @@ html, body {
   <!-- Mutations read-only -->
   <div class="mutations-section">
     <div class="sec-title">Mutations</div>
+    <div class="round-btns">
+      <button class="round-btn" onclick="endEncounter()">⚔ End of Encounter</button>
+      <button class="round-btn session" onclick="endSession()">✦ End of Session</button>
+    </div>
     <div class="mutation-list" id="t-mut-list"></div>
     <button class="add-btn" onclick="addMutation()" style="border-color:var(--t-border-lt);color:var(--t-text);">+ Add Mutation</button>
   </div>
@@ -938,7 +1105,7 @@ html, body {
  *   adaptability          number   — current adaptation points
  *   mutationThreshold     number   — points needed to claim next mutation
  *   thresholdManual       bool     — if true, claiming a mutation won't auto-increment threshold
- *   mutations             array    — [{ name: string, desc: string }]
+ *   mutations             array    — [{ name, desc, limitedUse, usageType:'encounter'|'session', used }]
  *
  * TAB 1 (sheet-normal): skills d4–d10, adaptability tracker, mutations editor
  * TAB 2 (sheet-tainted): skills d4–d20, Taint Die, mutations read-only mirror
@@ -977,7 +1144,7 @@ let S = {
   adaptability: 0,
   mutationThreshold: 2,
   thresholdManual: false,
-  mutations: [],   // [{name, desc}]
+  mutations: [],   // [{ name, desc, limitedUse, usageType:'encounter'|'session', used }]
   taintedWarningApproved: false,
   taintedTitle: null,
 };
@@ -1222,10 +1389,9 @@ function renderAdapt() {
 
 // ── MUTATIONS ─────────────────────────────────────────────────
 function addMutation() {
-  S.mutations.push({ name:'', desc:'' });
+  S.mutations.push({ name:'', desc:'', limitedUse:false, usageType:'encounter', used:false });
   renderMutations();
   save();
-  // Focus the new name input
   const list = document.getElementById('mut-list');
   const last = list.lastElementChild;
   if (last) last.querySelector('input[type=text]')?.focus();
@@ -1236,33 +1402,94 @@ function removeMutation(i) {
   save();
 }
 function renderMutations() {
-  // Editable list (normal tab)
   const list = document.getElementById('mut-list');
   list.innerHTML = '';
-  S.mutations.forEach((m, i) => {
-    const card = document.createElement('div');
-    card.className = 'mutation-card';
 
+  S.mutations.forEach((m, i) => {
+    // Ensure legacy mutations have the new fields
+    if (m.limitedUse === undefined) m.limitedUse = false;
+    if (m.usageType === undefined)  m.usageType  = 'encounter';
+    if (m.used === undefined)       m.used        = false;
+
+    const card = document.createElement('div');
+    card.className = 'mutation-card' + (m.used && m.limitedUse ? ' is-used' : '');
+
+    // Delete button
+    const del = document.createElement('button');
+    del.className = 'mutation-del';
+    del.textContent = '✕';
+    del.onclick = () => removeMutation(i);
+
+    // Name input
     const nameIn = document.createElement('input');
     nameIn.type = 'text';
     nameIn.placeholder = 'Mutation name…';
     nameIn.value = m.name;
     nameIn.oninput = e => { S.mutations[i].name = e.target.value; syncTaintedMutations(); save(); };
 
+    // Description textarea
     const descIn = document.createElement('textarea');
     descIn.placeholder = 'Description…';
     descIn.value = m.desc;
     descIn.rows = 2;
     descIn.oninput = e => { S.mutations[i].desc = e.target.value; syncTaintedMutations(); save(); };
 
-    const del = document.createElement('button');
-    del.className = 'mutation-del';
-    del.textContent = '✕';
-    del.onclick = () => removeMutation(i);
+    // Limited use row
+    const limitedRow = document.createElement('div');
+    limitedRow.className = 'mut-limited-row';
+
+    // "Limited use" checkbox + label
+    const limitedLabel = document.createElement('label');
+    limitedLabel.className = 'mut-limited-label';
+    const limitedCb = document.createElement('input');
+    limitedCb.type = 'checkbox';
+    limitedCb.checked = m.limitedUse;
+    limitedCb.onchange = e => {
+      S.mutations[i].limitedUse = e.target.checked;
+      renderMutations(); save();
+    };
+    limitedLabel.appendChild(limitedCb);
+    limitedLabel.append(' Limited use');
+    limitedRow.appendChild(limitedLabel);
+
+    // Usage controls — only shown when limitedUse is true
+    if (m.limitedUse) {
+      const usageControls = document.createElement('div');
+      usageControls.className = 'mut-usage-controls';
+
+      // Encounter / Session toggle
+      const typeToggle = document.createElement('div');
+      typeToggle.className = 'mut-type-toggle';
+      ['encounter','session'].forEach(type => {
+        const btn = document.createElement('button');
+        btn.className = 'mut-type-btn' + (m.usageType === type ? ' active' : '');
+        btn.textContent = type;
+        btn.onclick = () => { S.mutations[i].usageType = type; renderMutations(); save(); };
+        typeToggle.appendChild(btn);
+      });
+
+      // Used checkbox
+      const usedLabel = document.createElement('label');
+      usedLabel.className = 'mut-used-label' + (m.used ? ' is-used' : '');
+      const usedCb = document.createElement('input');
+      usedCb.type = 'checkbox';
+      usedCb.checked = m.used;
+      usedCb.onchange = e => {
+        S.mutations[i].used = e.target.checked;
+        renderMutations(); syncTaintedMutations(); save();
+      };
+      usedLabel.appendChild(usedCb);
+      usedLabel.append(' Used');
+
+      usageControls.appendChild(typeToggle);
+      usageControls.appendChild(usedLabel);
+      limitedRow.appendChild(usageControls);
+    }
 
     card.appendChild(del);
     card.appendChild(nameIn);
     card.appendChild(descIn);
+    card.appendChild(limitedRow);
     list.appendChild(card);
   });
 
@@ -1275,16 +1502,68 @@ function syncTaintedMutations() {
   tList.innerHTML = '';
   S.mutations.forEach(m => {
     const card = document.createElement('div');
-    card.className = 't-mutation-card';
+    card.className = 't-mutation-card' + (m.used && m.limitedUse ? ' is-used' : '');
+
     const nameEl = document.createElement('div');
     nameEl.className = 't-mutation-name';
     nameEl.textContent = m.name || '(unnamed)';
+
     const descEl = document.createElement('div');
     descEl.className = 't-mutation-desc';
     descEl.textContent = m.desc || '';
+
     card.appendChild(nameEl);
     card.appendChild(descEl);
+
+    // Show limited-use badge if applicable
+    if (m.limitedUse) {
+      const badge = document.createElement('div');
+      badge.className = 't-mut-used-badge ' + m.usageType + (m.used ? ' used' : '');
+      badge.textContent = (m.used ? '✓ Used — ' : '') + 'Once per ' + m.usageType;
+      card.appendChild(badge);
+    }
+
     tList.appendChild(card);
+  });
+}
+
+// ── END OF ENCOUNTER / SESSION ────────────────────────────────
+// Resets 'used' flags for limited-use mutations.
+// endEncounter: clears encounter-type mutations only.
+// endSession: clears all limited-use mutations.
+// ── CONFIRM MODAL ─────────────────────────────────────────────
+// Generic lightweight confirm used by endEncounter / endSession.
+// Pass a message and a callback for the Yes action.
+function openConfirm(message, onYes) {
+  document.getElementById('confirm-text').textContent = message;
+  const yesBtn = document.getElementById('confirm-yes-btn');
+  yesBtn.onclick = () => { closeConfirm(); onYes(); };
+  document.getElementById('confirm-overlay').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirm-overlay').classList.remove('open');
+}
+
+function endEncounter() {
+  openConfirm('End the encounter? Once-per-encounter abilities will refresh.', () => {
+    let count = 0;
+    S.mutations.forEach(m => {
+      if (m.limitedUse && m.usageType === 'encounter' && m.used) { m.used = false; count++; }
+    });
+    renderMutations();
+    save();
+    showToast(count > 0 ? `Encounter ended — ${count} abilit${count===1?'y':'ies'} refreshed.` : 'Encounter ended.');
+  });
+}
+function endSession() {
+  openConfirm('End the session? All limited-use abilities will refresh.', () => {
+    let count = 0;
+    S.mutations.forEach(m => {
+      if (m.limitedUse && m.used) { m.used = false; count++; }
+    });
+    renderMutations();
+    save();
+    showToast(count > 0 ? `Session ended — ${count} abilit${count===1?'y':'ies'} refreshed.` : 'Session ended.');
   });
 }
 
@@ -1461,6 +1740,17 @@ function boot() {
 
 boot();
 </script>
+
+<!-- CONFIRM MODAL (shared for end-of-encounter and end-of-session) -->
+<div id="confirm-overlay">
+  <div id="confirm-modal">
+    <div id="confirm-text"></div>
+    <div id="confirm-actions">
+      <button class="confirm-no-btn" onclick="closeConfirm()">No</button>
+      <button class="confirm-yes-btn" id="confirm-yes-btn" onclick="">Yes</button>
+    </div>
+  </div>
+</div>
 
 <!-- TAINTED WARNING MODAL -->
 <div id="tainted-warning-overlay">
