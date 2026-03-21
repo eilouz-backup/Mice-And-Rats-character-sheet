@@ -324,7 +324,6 @@ html, body {
   color: var(--amber-lt);
   font-style: italic;
   animation: glow 1.8s ease-in-out infinite;
-  display: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1402,6 +1401,8 @@ html, body {
 // chosen by the player on first load via the ID picker screen.
 // Key format: 'roc_<characterId>'  e.g. 'roc_grink'
 // ID is stored in sessionStorage so the picker only shows once per browser tab.
+// Keys are set by setCharacterId() during boot — these are safe placeholders only.
+// boot() cleans up 'roc_default' from localStorage so no data is ever written here.
 let STORAGE_KEY        = 'roc_default';
 let STORAGE_BACKUP_KEY = 'roc_default_backup';
 
@@ -1634,9 +1635,11 @@ function spendAdaptForMutation() {
 function editThresh() {
   // Replace whichever display is visible
   const activeSheet = document.querySelector('.sheet.active');
-  const display = activeSheet.id === 'sheet-tainted'
+  const isTainted = activeSheet && activeSheet.id === 'sheet-tainted';
+  const display = isTainted
     ? document.getElementById('t-thresh-display')
     : document.getElementById('thresh-display');
+  if (!display) return; // guard: GM tab or other non-sheet active
 
   const input = document.createElement('input');
   input.type = 'number';
@@ -1863,7 +1866,7 @@ function endSession() {
 // ── GM TAB ────────────────────────────────────────────────────
 // The GM tab shows all saved character IDs and lets the GM switch
 // between them to inspect any character's sheet.
-// gmWarningApproved is stored in sessionStorage so it only shows once per tab.
+// roc_gm_approved is stored in localStorage so it persists across page reloads.
 
 function openGmTab() {
   if (!localStorage.getItem('roc_gm_approved')) {
@@ -1967,7 +1970,7 @@ function gmAddId() {
   const key = 'roc_' + safe;
   if (!localStorage.getItem(key)) {
     const empty = {
-      name: val, remarkableFeature:'', luckyRelic:'',
+      name: safe, remarkableFeature:'', luckyRelic:'',
       skills: {}, taintedDie: null, injury: null,
       adaptability: 0, mutationThreshold: 2,
       thresholdManual: false, mutations: [],
@@ -2173,8 +2176,6 @@ function doRestore() {
     showToast('Backup restored.');
   } catch(e) { showToast('Could not restore backup.'); }
 }
-
-// ── BOOT ──────────────────────────────────────────────────────
 
 // ── CHARACTER SELECTOR ────────────────────────────────────────
 // Populates the dropdown at the top of every page with all saved IDs.
