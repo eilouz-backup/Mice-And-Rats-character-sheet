@@ -904,6 +904,261 @@ html, body {
 .t-mut-used-badge.encounter { background: rgba(200,144,30,0.15); color: var(--amber-dim); }
 .t-mut-used-badge.session   { background: rgba(140,100,200,0.15); color: var(--t-text-dim); }
 .t-mut-used-badge.used      { opacity: 0.5; text-decoration: line-through; }
+
+/* ─── CHARACTER ID PICKER ───────────────── */
+#id-picker-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 400;
+  align-items: center;
+  justify-content: center;
+}
+#id-picker-overlay.open { display: flex; }
+#id-picker-modal {
+  background: var(--bg3);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 32px 28px 24px;
+  max-width: 340px;
+  width: 90%;
+  text-align: center;
+  animation: fadeIn 0.2s ease;
+}
+#id-picker-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 16px;
+  color: var(--amber-lt);
+  margin-bottom: 8px;
+}
+#id-picker-sub {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+#id-picker-input {
+  width: 100%;
+  background: var(--bg2);
+  border: 1px solid var(--border-lt);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Crimson Text', serif;
+  font-size: 16px;
+  padding: 9px 12px;
+  outline: none;
+  margin-bottom: 14px;
+  text-align: center;
+  transition: border-color 0.2s;
+}
+#id-picker-input:focus { border-color: var(--amber-dim); }
+#id-picker-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 10px 24px;
+  border-radius: 4px;
+  border: 1px solid var(--amber-dim);
+  background: var(--amber-dim);
+  color: var(--amber-lt);
+  cursor: pointer;
+  transition: all 0.15s;
+  width: 100%;
+}
+#id-picker-btn:hover { background: var(--amber); color: #100800; }
+#id-picker-note {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-style: italic;
+  margin-top: 12px;
+}
+
+/* ─── GM TAB ────────────────────────────── */
+.gm-tab-btn {
+  flex: 0 0 44px;
+  font-size: 16px;
+  color: var(--text-dim);
+  border-left: 1px solid var(--border);
+  transition: color 0.2s, background 0.2s;
+}
+.gm-tab-btn:hover { color: var(--amber); background: rgba(200,144,30,0.06); }
+.gm-tab-btn.active { color: var(--amber-lt); border-bottom-color: var(--amber); }
+
+#sheet-gm { background: var(--bg2); min-height: 100vh; }
+.gm-header {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.gm-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 16px;
+  color: var(--amber-lt);
+  margin-bottom: 4px;
+}
+.gm-sub { font-style: italic; color: var(--text-dim); font-size: 13px; }
+
+.gm-current-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border-lt);
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--text);
+}
+.gm-current-badge strong { color: var(--amber-lt); font-style: normal; }
+
+.gm-id-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.gm-id-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 8px 12px;
+  transition: border-color 0.15s;
+}
+.gm-id-row:hover { border-color: var(--border-lt); }
+.gm-id-row.active-id { border-color: var(--amber-dim); background: var(--bg4); }
+.gm-id-name {
+  flex: 1;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--text);
+}
+.gm-id-name.active-id { color: var(--amber-lt); }
+.gm-switch-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border-lt);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.gm-switch-btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+.gm-switch-btn:disabled { opacity: 0.35; cursor: default; }
+.gm-switch-btn:disabled:hover { border-color: var(--border-lt); color: var(--text-dim); }
+
+.gm-add-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.gm-add-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border-lt);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: 'Crimson Text', serif;
+  font-size: 15px;
+  padding: 7px 10px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.gm-add-input:focus { border-color: var(--amber-dim); }
+.gm-add-input::placeholder { color: var(--text-dim); font-style: italic; }
+.gm-add-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border-radius: 4px;
+  border: 1px solid var(--amber-dim);
+  background: var(--amber-dim);
+  color: var(--amber-lt);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.gm-add-btn:hover { background: var(--amber); color: #100800; }
+
+/* GM warning modal */
+#gm-warning-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 250;
+  align-items: center;
+  justify-content: center;
+}
+#gm-warning-overlay.open { display: flex; }
+#gm-warning-modal {
+  background: var(--bg3);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 28px 24px 22px;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  animation: fadeIn 0.18s ease;
+}
+#gm-warning-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  color: var(--amber-lt);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+}
+#gm-warning-text {
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+#gm-warning-btns { display: flex; flex-direction: column; gap: 8px; }
+.gm-yes-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--amber-dim);
+  background: var(--amber-dim);
+  color: var(--amber-lt);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.gm-yes-btn:hover { background: var(--amber); color: #100800; }
+.gm-no-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 10px;
+  border-radius: 4px;
+  border: 1px solid var(--border-lt);
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.gm-no-btn:hover { color: var(--text); border-color: var(--text-dim); }
 </style>
 </head>
 <body>
@@ -912,6 +1167,7 @@ html, body {
 <div class="tab-bar">
   <button class="tab-btn active" id="tab-normal" onclick="switchTab('normal')">Rats on Cheesewheels</button>
   <button class="tab-btn t-tab" id="tab-tainted" onclick="openTaintedTab()">☠ Touched &amp; Tainted</button>
+  <button class="tab-btn gm-tab-btn" onclick="openGmTab()" title="GM Controls">⚙</button>
   <button class="tab-btn reset-tab-btn" onclick="openReset()" title="Reset sheet">↺</button>
 </div>
 
@@ -1084,6 +1340,42 @@ html, body {
 
 </div><!-- /sheet-tainted -->
 
+
+<!-- ══════════════ GM SHEET ══════════════ -->
+<div class="sheet" id="sheet-gm">
+
+  <div class="gm-header" style="margin-top:16px;">
+    <div class="gm-title">GM Controls</div>
+    <div class="gm-sub">Character management — handle with care</div>
+  </div>
+
+  <div class="gm-current-badge">
+    Viewing: <strong id="gm-current-id">—</strong>
+  </div>
+
+  <div class="sec-title">Characters <span class="mutation-count" id="gm-id-count"></span></div>
+  <div class="gm-id-list" id="gm-id-list"></div>
+
+  <div class="sec-title" style="margin-top:16px;">Add Character ID</div>
+  <div class="gm-add-row">
+    <input type="text" class="gm-add-input" id="gm-add-input" placeholder="Enter a character name or ID…" maxlength="40">
+    <button class="gm-add-btn" onclick="gmAddId()">Add</button>
+  </div>
+
+</div><!-- /sheet-gm -->
+
+<!-- GM WARNING MODAL -->
+<div id="gm-warning-overlay">
+  <div id="gm-warning-modal">
+    <div id="gm-warning-title">⚙ GM Settings</div>
+    <div id="gm-warning-text">This is just setting stuff.<br>Are you the GM?</div>
+    <div id="gm-warning-btns">
+      <button class="gm-yes-btn" onclick="confirmGmAccess()">Yes, I'm the GM</button>
+      <button class="gm-no-btn" onclick="closeGmWarning()">No… I'm just a nosey mouse</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1094,9 +1386,9 @@ html, body {
  * Based on "Never Stop Blowing Up" by Brennan Lee Mulligan.
  *
  * STATE (S) — single source of truth, persisted to localStorage.
- *   Key is derived from the ?character= URL parameter (e.g. ?character=grink → 'roc_grink').
- *   Falls back to 'roc_default' if no parameter given.
- *   This means each unique URL = separate character sheet with independent storage.
+ *   Key is derived from the character ID chosen at the ID picker screen on first load.
+ *   Format: 'roc_<id>'  e.g. 'roc_grink'. ID is remembered per tab via sessionStorage.
+ *   Each tab that picks a different ID gets fully independent storage.
  *   name                  string   — character name
  *   remarkableFeature     string   — unique physical trait
  *   luckyRelic            string   — treasured item
@@ -1127,12 +1419,22 @@ html, body {
  */
 
 // ── STORAGE KEY ───────────────────────────────────────────────
-// Each character gets its own localStorage slot via ?character=name in the URL.
-// Example: roc_sheet.html?character=grink  →  stored as 'roc_grink'
-// Fallback to 'roc_default' if no parameter given.
-const _urlParam = new URLSearchParams(window.location.search).get('player') || 'default';
-const STORAGE_KEY        = 'roc_' + _urlParam;
-const STORAGE_BACKUP_KEY = 'roc_' + _urlParam + '_backup';
+// Each character gets its own localStorage slot based on a character ID
+// chosen by the player on first load via the ID picker screen.
+// Key format: 'roc_<characterId>'  e.g. 'roc_grink'
+// ID is stored in sessionStorage so the picker only shows once per browser tab.
+let STORAGE_KEY        = 'roc_default';
+let STORAGE_BACKUP_KEY = 'roc_default_backup';
+
+function setCharacterId(id) {
+  const safe = id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
+  STORAGE_KEY        = 'roc_' + safe;
+  STORAGE_BACKUP_KEY = 'roc_' + safe + '_backup';
+  sessionStorage.setItem('roc_character_id', safe);
+}
+function getStoredCharacterId() {
+  return sessionStorage.getItem('roc_character_id');
+}
 
 // ── CONSTANTS ─────────────────────────────────────────────────
 const SKILLS = ['Fang & Claw','Strings & Points','Ha! Missed me!','The Rat','The Folk','Crafty','Light Feet'];
@@ -1578,6 +1880,117 @@ function endSession() {
   });
 }
 
+
+// ── GM TAB ────────────────────────────────────────────────────
+// The GM tab shows all saved character IDs and lets the GM switch
+// between them to inspect any character's sheet.
+// gmWarningApproved is stored in sessionStorage so it only shows once per tab.
+
+function openGmTab() {
+  if (!sessionStorage.getItem('gm_approved')) {
+    document.getElementById('gm-warning-overlay').classList.add('open');
+  } else {
+    showGmTab();
+  }
+}
+function closeGmWarning() {
+  document.getElementById('gm-warning-overlay').classList.remove('open');
+}
+function confirmGmAccess() {
+  sessionStorage.setItem('gm_approved', '1');
+  closeGmWarning();
+  showGmTab();
+}
+function showGmTab() {
+  switchTab('gm');
+  renderGmTab();
+}
+
+// Returns all character IDs saved in localStorage (keys matching 'roc_*' but not backup keys)
+function getAllCharacterIds() {
+  const ids = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && key.startsWith('roc_') && !key.endsWith('_backup')) {
+      ids.push(key.replace('roc_', ''));
+    }
+  }
+  return ids.sort();
+}
+
+function renderGmTab() {
+  const currentId = sessionStorage.getItem('roc_character_id') || '—';
+  document.getElementById('gm-current-id').textContent = currentId;
+
+  const ids = getAllCharacterIds();
+  document.getElementById('gm-id-count').textContent = `(${ids.length})`;
+
+  const list = document.getElementById('gm-id-list');
+  list.innerHTML = '';
+
+  if (ids.length === 0) {
+    const empty = document.createElement('div');
+    empty.style.cssText = 'color:var(--text-dim);font-style:italic;font-size:14px;padding:8px 0;';
+    empty.textContent = 'No characters saved yet.';
+    list.appendChild(empty);
+    return;
+  }
+
+  ids.forEach(id => {
+    const isActive = id === currentId;
+    const row = document.createElement('div');
+    row.className = 'gm-id-row' + (isActive ? ' active-id' : '');
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'gm-id-name' + (isActive ? ' active-id' : '');
+    nameEl.textContent = id;
+
+    const switchBtn = document.createElement('button');
+    switchBtn.className = 'gm-switch-btn';
+    switchBtn.textContent = isActive ? 'Current' : 'Switch to';
+    switchBtn.disabled = isActive;
+    switchBtn.onclick = () => gmSwitchTo(id);
+
+    row.appendChild(nameEl);
+    row.appendChild(switchBtn);
+    list.appendChild(row);
+  });
+}
+
+// Pre-create a character slot (initialises empty storage for that ID)
+function gmAddId() {
+  const input = document.getElementById('gm-add-input');
+  const val = input.value.trim();
+  if (!val) { input.focus(); return; }
+
+  // Temporarily set key to write an empty save for this id
+  const safe = val.toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
+  const key = 'roc_' + safe;
+  if (!localStorage.getItem(key)) {
+    const empty = {
+      name: val, remarkableFeature:'', luckyRelic:'',
+      skills: {}, taintedDie: null, injury: null,
+      adaptability: 0, mutationThreshold: 2,
+      thresholdManual: false, mutations: [],
+      taintedWarningApproved: false, taintedTitle: null,
+    };
+    SKILLS.forEach(sk => empty.skills[sk] = { die:null, locked:false });
+    localStorage.setItem(key, JSON.stringify(empty));
+    showToast(`Character "${val}" added.`);
+  } else {
+    showToast(`"${safe}" already exists.`);
+  }
+  input.value = '';
+  renderGmTab();
+}
+
+// Switch the active sheet to a different character ID
+function gmSwitchTo(id) {
+  setCharacterId(id);
+  bootSheet();
+  switchTab('normal');
+  showToast(`Switched to: ${id}`);
+}
 // ── TAB SWITCH ────────────────────────────────────────────────
 function switchTab(tab) {
   document.querySelectorAll('.sheet').forEach(s => s.classList.remove('active'));
@@ -1712,7 +2125,7 @@ function doReset() {
   };
   SKILLS.forEach(sk => S.skills[sk] = { die:null, locked:false });
   closeReset();
-  boot();
+  bootSheet();
   showToast('Sheet reset. Open ↺ to restore backup if needed.');
 }
 function doRestore() {
@@ -1724,13 +2137,37 @@ function doRestore() {
     SKILLS.forEach(sk => { if (!S.skills[sk]) S.skills[sk] = {die:null,locked:false}; });
     save();
     closeReset();
-    boot();
+    bootSheet();
     showToast('Backup restored.');
   } catch(e) { showToast('Could not restore backup.'); }
 }
 
 // ── BOOT ──────────────────────────────────────────────────────
 function boot() {
+  // Check if this tab already has a character ID (persists for the tab's lifetime)
+  const existingId = getStoredCharacterId();
+  if (existingId) {
+    setCharacterId(existingId);
+    bootSheet();
+  } else {
+    // Show the ID picker — bootSheet() is called after the player confirms
+    document.getElementById('id-picker-overlay').classList.add('open');
+    const input = document.getElementById('id-picker-input');
+    input.focus();
+    input.onkeydown = e => { if (e.key === 'Enter') confirmCharacterId(); };
+  }
+}
+
+function confirmCharacterId() {
+  const input = document.getElementById('id-picker-input');
+  const val = input.value.trim();
+  if (!val) { input.focus(); return; }
+  setCharacterId(val);
+  document.getElementById('id-picker-overlay').classList.remove('open');
+  bootSheet();
+}
+
+function bootSheet() {
   loadSave();
   mirrorFields();
   renderSkills();
@@ -1741,16 +2178,31 @@ function boot() {
   renderTaintedNameLine();
 
   // Wire text fields — needed after load
-  document.getElementById('f-name').value    = S.name;
+  document.getElementById('f-name').value      = S.name;
   document.getElementById('f-feature').value   = S.remarkableFeature;
-  document.getElementById('f-relic').value   = S.luckyRelic;
-  document.getElementById('t-name').value    = S.name;
+  document.getElementById('f-relic').value     = S.luckyRelic;
+  document.getElementById('t-name').value      = S.name;
   document.getElementById('t-feature').value   = S.remarkableFeature;
-  document.getElementById('t-relic').value   = S.luckyRelic;
+  document.getElementById('t-relic').value     = S.luckyRelic;
+  // Wire Enter on GM add-input
+  const gmIn = document.getElementById('gm-add-input');
+  if (gmIn) gmIn.onkeydown = e => { if (e.key === 'Enter') gmAddId(); };
 }
 
 boot();
 </script>
+
+
+<!-- CHARACTER ID PICKER — shown on first load in each new tab -->
+<div id="id-picker-overlay">
+  <div id="id-picker-modal">
+    <div id="id-picker-title">Rats on Cheesewheels</div>
+    <div id="id-picker-sub">Enter an ID for this character,<br>it could just be your name.</div>
+    <input type="text" id="id-picker-input" placeholder="e.g. Grink" maxlength="40">
+    <button id="id-picker-btn" onclick="confirmCharacterId()">Begin</button>
+    <div id="id-picker-note">Each character needs a unique ID to keep their sheet separate.</div>
+  </div>
+</div>
 
 <!-- CONFIRM MODAL (shared for end-of-encounter and end-of-session) -->
 <div id="confirm-overlay">
