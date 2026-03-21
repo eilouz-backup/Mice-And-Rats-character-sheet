@@ -1130,7 +1130,7 @@ html, body {
 // Each character gets its own localStorage slot via ?character=name in the URL.
 // Example: roc_sheet.html?character=grink  →  stored as 'roc_grink'
 // Fallback to 'roc_default' if no parameter given.
-const _urlParam = new URLSearchParams(window.location.search).get('character') || 'default';
+const _urlParam = new URLSearchParams(window.location.search).get('player') || 'default';
 const STORAGE_KEY        = 'roc_' + _urlParam;
 const STORAGE_BACKUP_KEY = 'roc_' + _urlParam + '_backup';
 
