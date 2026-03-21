@@ -1093,7 +1093,10 @@ html, body {
  * Two-tab HTML character sheet for the "Rats on Cheesewheels" TTRPG.
  * Based on "Never Stop Blowing Up" by Brennan Lee Mulligan.
  *
- * STATE (S) — single source of truth, persisted to localStorage key 'roc_v2'
+ * STATE (S) — single source of truth, persisted to localStorage.
+ *   Key is derived from the ?character= URL parameter (e.g. ?character=grink → 'roc_grink').
+ *   Falls back to 'roc_default' if no parameter given.
+ *   This means each unique URL = separate character sheet with independent storage.
  *   name                  string   — character name
  *   remarkableFeature     string   — unique physical trait
  *   luckyRelic            string   — treasured item
@@ -1122,6 +1125,14 @@ html, body {
  *   reset-overlay                       — reset confirmation modal
  *   tainted-warning-overlay             — GM gate modal for tainted tab
  */
+
+// ── STORAGE KEY ───────────────────────────────────────────────
+// Each character gets its own localStorage slot via ?character=name in the URL.
+// Example: roc_sheet.html?character=grink  →  stored as 'roc_grink'
+// Fallback to 'roc_default' if no parameter given.
+const _urlParam = new URLSearchParams(window.location.search).get('character') || 'default';
+const STORAGE_KEY        = 'roc_' + _urlParam;
+const STORAGE_BACKUP_KEY = 'roc_' + _urlParam + '_backup';
 
 // ── CONSTANTS ─────────────────────────────────────────────────
 const SKILLS = ['Fang & Claw','Strings & Points','Ha! Missed me!','The Rat','The Folk','Crafty','Light Feet'];
@@ -1152,11 +1163,11 @@ SKILLS.forEach(sk => S.skills[sk] = { die:null, locked:false });
 
 // ── PERSIST ────────────────────────────────────────────────────
 function save() {
-  try { localStorage.setItem('roc_v2', JSON.stringify(S)); } catch(e){}
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(e){}
 }
 function loadSave() {
   try {
-    const raw = localStorage.getItem('roc_v2');
+    const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return;
     const p = JSON.parse(raw);
     S = { ...S, ...p };
@@ -1660,7 +1671,7 @@ function closeTaintedWarning() {
 
 // ── RESET ─────────────────────────────────────────────────────
 function openReset() {
-  const hasBackup = !!localStorage.getItem('roc_v2_backup');
+  const hasBackup = !!localStorage.getItem(STORAGE_BACKUP_KEY);
   const note = document.getElementById('reset-restore-note');
   const actions = document.getElementById('reset-actions');
   note.style.display = hasBackup ? 'block' : 'none';
@@ -1690,8 +1701,8 @@ function closeReset() {
   document.getElementById('reset-overlay').classList.remove('open');
 }
 function doReset() {
-  try { localStorage.setItem('roc_v2_backup', localStorage.getItem('roc_v2')); } catch(e){}
-  localStorage.removeItem('roc_v2');
+  try { localStorage.setItem(STORAGE_BACKUP_KEY, localStorage.getItem(STORAGE_KEY)); } catch(e){}
+  localStorage.removeItem(STORAGE_KEY);
   S = {
     name:'', remarkableFeature:'', luckyRelic:'',
     skills: {}, taintedDie: null, injury: null,
@@ -1706,7 +1717,7 @@ function doReset() {
 }
 function doRestore() {
   try {
-    const raw = localStorage.getItem('roc_v2_backup');
+    const raw = localStorage.getItem(STORAGE_BACKUP_KEY);
     if (!raw) return;
     const p = JSON.parse(raw);
     S = { ...S, ...p };
