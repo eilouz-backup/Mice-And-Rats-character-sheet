@@ -1324,6 +1324,9 @@ html, body {
     <div class="gm-title">GM Controls</div>
     <div class="gm-sub">Character management — handle with care</div>
   </div>
+  <div style="text-align:right;margin-bottom:8px;">
+    <button class="gm-switch-btn" onclick="renderGmTab();renderCharacterSelector();showToast('List refreshed.');" style="font-size:11px;">↺ Refresh List</button>
+  </div>
 
   <div class="gm-current-badge">
     Viewing: <strong id="gm-current-id">—</strong>
@@ -1863,9 +1866,10 @@ function endSession() {
 // gmWarningApproved is stored in sessionStorage so it only shows once per tab.
 
 function openGmTab() {
-  if (!sessionStorage.getItem('gm_approved')) {
+  if (!localStorage.getItem('roc_gm_approved')) {
     document.getElementById('gm-warning-overlay').classList.add('open');
   } else {
+    // switchTab triggers renderGmTab via its own hook, but call showGmTab for clarity
     showGmTab();
   }
 }
@@ -1873,7 +1877,7 @@ function closeGmWarning() {
   document.getElementById('gm-warning-overlay').classList.remove('open');
 }
 function confirmGmAccess() {
-  sessionStorage.setItem('gm_approved', '1');
+  localStorage.setItem('roc_gm_approved', '1');
   closeGmWarning();
   showGmTab();
 }
@@ -1882,12 +1886,20 @@ function showGmTab() {
   renderGmTab();
 }
 
-// Returns all character IDs saved in localStorage (keys matching 'roc_*' but not backup keys)
+// Reserved localStorage keys that are NOT character IDs
+const RESERVED_KEYS = new Set(['roc_gm_approved', 'roc_v2', 'roc_default']);
+
+// Returns all character IDs saved in localStorage.
+// Only keys of the form 'roc_<id>' that are not in RESERVED_KEYS and not backups.
 function getAllCharacterIds() {
   const ids = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
-    if (key && key.startsWith('roc_') && !key.endsWith('_backup')) {
+    if (key
+      && key.startsWith('roc_')
+      && !key.endsWith('_backup')
+      && !RESERVED_KEYS.has(key)
+    ) {
       ids.push(key.replace('roc_', ''));
     }
   }
@@ -1980,20 +1992,26 @@ function gmDeleteId(id) {
   // If we just deleted the active character, reset to picker
   const currentId = sessionStorage.getItem('roc_character_id');
   if (currentId === safe) {
+    // Deleted the active character — clear session and load first remaining
     sessionStorage.removeItem('roc_character_id');
-    showToast(`"${id}" deleted. Please select a character.`);
-    renderGmTab();
-    renderCharacterSelector();
-    switchTab('normal');
-    // Clear visible sheet
-    S = { name:'', remarkableFeature:'', luckyRelic:'', skills:{}, taintedDie:null, injury:null, adaptability:0, mutationThreshold:2, thresholdManual:false, mutations:[], taintedWarningApproved:false, taintedTitle:null };
-    SKILLS.forEach(sk => S.skills[sk] = {die:null, locked:false});
-    bootSheet();
+    STORAGE_KEY        = 'roc_default';
+    STORAGE_BACKUP_KEY = 'roc_default_backup';
+    const remaining = getAllCharacterIds();
+    if (remaining.length > 0) {
+      setCharacterId(remaining[0]);
+      bootSheet();
+    } else {
+      // No characters left — clear sheet display
+      S = { name:'', remarkableFeature:'', luckyRelic:'', skills:{}, taintedDie:null, injury:null, adaptability:0, mutationThreshold:2, thresholdManual:false, mutations:[], taintedWarningApproved:false, taintedTitle:null };
+      SKILLS.forEach(sk => S.skills[sk] = {die:null, locked:false});
+      bootSheet();
+    }
+    showToast(`"${id}" deleted.`);
   } else {
     showToast(`"${id}" deleted.`);
-    renderGmTab();
-    renderCharacterSelector();
   }
+  renderGmTab();
+  renderCharacterSelector();
 }
 
 // Switch the active sheet to a different character ID
@@ -2189,6 +2207,11 @@ function onSelectorChange(id) {
 }
 
 function boot() {
+  // Clean up legacy storage keys from before the character ID system
+  localStorage.removeItem('roc_v2');
+  localStorage.removeItem('roc_v2_backup');
+  localStorage.removeItem('roc_default');
+  localStorage.removeItem('roc_default_backup');
   // Render the character selector from whatever is in localStorage,
   // then load the first saved character (or leave blank if none exist).
   renderCharacterSelector();
