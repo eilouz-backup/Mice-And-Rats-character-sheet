@@ -1164,7 +1164,6 @@ html, body {
 
   <div class="sheet-header" style="margin-top:16px;">
     <div class="sheet-title">Character Sheet</div>
-    <div class="sheet-sub" id="normal-name-display">—</div>
   </div>
 
   <div class="info-grid">
@@ -1177,7 +1176,7 @@ html, body {
       <input type="text" id="f-feature" placeholder="What makes you unmistakable…" oninput="onField('remarkableFeature', this.value)">
     </div>
     <div class="field full">
-      <label>Lucky Relic</label>
+      <label>Prized Scrap</label>
       <input type="text" id="f-relic" placeholder="Your most cherished lucky find…" oninput="onField('luckyRelic', this.value)">
     </div>
   </div>
@@ -1237,13 +1236,6 @@ html, body {
 
   <div class="tainted-header" style="margin-top:16px;">
     <div class="tainted-sheet-title">☠ Touched &amp; Tainted ☠</div>
-    <div class="tainted-name-line">
-      <span id="tainted-name-display">—</span><span id="tainted-comma" style="display:none;">,</span>
-      <span id="tainted-title-wrap" style="display:none;">
-        <span id="tainted-title-text" class="tainted-title-label"></span>
-        <button class="tainted-title-edit-btn" onclick="editTaintedTitle()" title="Edit title">✏️</button>
-      </span>
-    </div>
   </div>
 
   <!-- Central Tainted Skill -->
@@ -1254,16 +1246,20 @@ html, body {
 
   <!-- Info mirror -->
   <div class="info-grid" style="margin-bottom:18px;">
-    <div class="field full">
+    <div class="field">
       <label>Name</label>
       <input type="text" id="t-name" placeholder="—" oninput="onField('name', this.value)">
     </div>
     <div class="field">
-      <label>Remarkable Feature</label>
+      <label>Taint Title</label>
+      <input type="text" id="t-taint-title" placeholder="e.g. the Hollow…" oninput="onTaintTitle(this.value)">
+    </div>
+    <div class="field">
+      <label>Dominant Mutation</label>
       <input type="text" id="t-feature" placeholder="—" oninput="onField('remarkableFeature', this.value)">
     </div>
     <div class="field">
-      <label>Lucky Relic</label>
+      <label>Worn Anchor</label>
       <input type="text" id="t-relic" placeholder="—" oninput="onField('luckyRelic', this.value)">
     </div>
   </div>
@@ -1283,7 +1279,7 @@ html, body {
 
     <!-- Adapt mirror -->
     <div>
-      <div class="sec-title">Adaptability Points</div>
+      <div class="sec-title">Mutation Points</div>
       <div class="adapt-row">
         <div class="adapt-counter">
           <button class="counter-btn" onclick="changeAdapt(-1)" style="border-color:#4a1010;color:#b890e0;">−</button>
@@ -1291,7 +1287,7 @@ html, body {
           <button class="counter-btn" onclick="changeAdapt(1)" style="border-color:#4a1010;color:#b890e0;">+</button>
         </div>
         <div class="adapt-info" style="color:var(--t-text);">
-          Mutation Threshold:
+          Mutation Cost:
           <span class="thresh-display" id="t-thresh-display">
             <span class="thresh-val" id="t-adapt-thresh" style="color:#b890e0;">2</span>
             <button class="edit-btn" title="Edit threshold" onclick="editThresh()" style="color:var(--t-text);">✏️</button>
@@ -1423,9 +1419,14 @@ const FULL_DICE   = ['d4','d6','d8','d10','d12','d20'];
 const LOCK_LIMITS = {d10:3, d12:2, d20:1};
 
 const INJURY_LEVELS = [
-  { key:'superficial', label:'Superficial', note:'',                       cls:'' },
+  { key:'superficial', label:'Superficial', note:'',                           cls:'' },
   { key:'severe',      label:'Severe',      note:'Adapting costs double',       cls:'severe' },
-  { key:'chaosized',   label:'Survive!',   note:'Gain 10 adaptation tokens',    cls:'chaosized' },
+  { key:'chaosized',   label:'Survive!',    note:'Gain 6 adaptation tokens',    cls:'chaosized' },
+];
+const INJURY_LEVELS_TAINTED = [
+  { key:'superficial', label:'Superficial',  note:'',                           cls:'' },
+  { key:'severe',      label:'Mutilation',   note:'Adapting costs double',       cls:'severe' },
+  { key:'chaosized',   label:'Live For Pain', note:'Gain 10 adaptation tokens',  cls:'chaosized' },
 ];
 
 // ── STATE ──────────────────────────────────────────────────────
@@ -1463,11 +1464,17 @@ function onField(key, val) {
   mirrorFields();
   save();
 }
+function onTaintTitle(val) {
+  S.taintedTitle = val;
+  renderTaintedNameLine();
+  save();
+}
 function mirrorFields() {
   setVal('f-name',   S.name);
   setVal('f-feature', S.remarkableFeature);
   setVal('f-relic',   S.luckyRelic);
   setVal('t-name',   S.name);
+  setVal('t-taint-title', S.taintedTitle || '');
   setVal('t-feature', S.remarkableFeature);
   setVal('t-relic',   S.luckyRelic);
   setText('normal-name-display',  S.name || '—');
@@ -1587,10 +1594,10 @@ function renderTaintedTrack() {
 }
 
 // ── INJURY ────────────────────────────────────────────────────
-function buildInjuryList(containerId) {
+function buildInjuryList(containerId, levels) {
   const el = document.getElementById(containerId);
   el.innerHTML = '';
-  INJURY_LEVELS.forEach(lvl => {
+  levels.forEach(lvl => {
     const item = document.createElement('div');
     item.className = 'injury-item ' + lvl.cls + (S.injury === lvl.key ? ' selected' : '');
     item.onclick = () => { S.injury = S.injury === lvl.key ? null : lvl.key; renderInjury(); save(); };
@@ -1609,8 +1616,8 @@ function buildInjuryList(containerId) {
   });
 }
 function renderInjury() {
-  buildInjuryList('injury-normal');
-  buildInjuryList('injury-tainted');
+  buildInjuryList('injury-normal',  INJURY_LEVELS);
+  buildInjuryList('injury-tainted', INJURY_LEVELS_TAINTED);
 }
 
 // ── ADAPTABILITY ───────────────────────────────────────────────
@@ -1696,12 +1703,9 @@ function removeMutation(i) {
   renderMutations();
   save();
 }
-function renderMutations() {
-  const list = document.getElementById('mut-list');
-  list.innerHTML = '';
-
-  S.mutations.forEach((m, i) => {
-    // Ensure legacy mutations have the new fields
+// Builds a single editable mutation card and appends it to the given container.
+// Used by both the normal tab and the tainted tab so they are always identical.
+function buildMutationCard(container, m, i) {
     if (m.limitedUse === undefined) m.limitedUse = false;
     if (m.usageType === undefined)  m.usageType  = 'encounter';
     if (m.used === undefined)       m.used        = false;
@@ -1709,31 +1713,26 @@ function renderMutations() {
     const card = document.createElement('div');
     card.className = 'mutation-card' + (m.used && m.limitedUse ? ' is-used' : '');
 
-    // Delete button
     const del = document.createElement('button');
     del.className = 'mutation-del';
     del.textContent = '✕';
     del.onclick = () => removeMutation(i);
 
-    // Name input
     const nameIn = document.createElement('input');
     nameIn.type = 'text';
     nameIn.placeholder = 'Mutation name…';
     nameIn.value = m.name;
-    nameIn.oninput = e => { S.mutations[i].name = e.target.value; syncTaintedMutations(); save(); };
+    nameIn.oninput = e => { S.mutations[i].name = e.target.value; renderMutations(); save(); };
 
-    // Description textarea
     const descIn = document.createElement('textarea');
     descIn.placeholder = 'Description…';
     descIn.value = m.desc;
     descIn.rows = 2;
-    descIn.oninput = e => { S.mutations[i].desc = e.target.value; syncTaintedMutations(); save(); };
+    descIn.oninput = e => { S.mutations[i].desc = e.target.value; renderMutations(); save(); };
 
-    // Limited use row
     const limitedRow = document.createElement('div');
     limitedRow.className = 'mut-limited-row';
 
-    // "Limited use" checkbox + label
     const limitedLabel = document.createElement('label');
     limitedLabel.className = 'mut-limited-label';
     const limitedCb = document.createElement('input');
@@ -1747,12 +1746,10 @@ function renderMutations() {
     limitedLabel.append(' Limited use');
     limitedRow.appendChild(limitedLabel);
 
-    // Usage controls — only shown when limitedUse is true
     if (m.limitedUse) {
       const usageControls = document.createElement('div');
       usageControls.className = 'mut-usage-controls';
 
-      // Encounter / Session toggle
       const typeToggle = document.createElement('div');
       typeToggle.className = 'mut-type-toggle';
       ['encounter','session'].forEach(type => {
@@ -1763,7 +1760,6 @@ function renderMutations() {
         typeToggle.appendChild(btn);
       });
 
-      // Used checkbox
       const usedLabel = document.createElement('label');
       usedLabel.className = 'mut-used-label' + (m.used ? ' is-used' : '');
       const usedCb = document.createElement('input');
@@ -1771,7 +1767,7 @@ function renderMutations() {
       usedCb.checked = m.used;
       usedCb.onchange = e => {
         S.mutations[i].used = e.target.checked;
-        renderMutations(); syncTaintedMutations(); save();
+        renderMutations(); save();
       };
       usedLabel.appendChild(usedCb);
       usedLabel.append(' Used');
@@ -1785,42 +1781,27 @@ function renderMutations() {
     card.appendChild(nameIn);
     card.appendChild(descIn);
     card.appendChild(limitedRow);
-    list.appendChild(card);
+    container.appendChild(card);
+}
+
+function renderMutations() {
+  // Render identical editable cards in both the normal and tainted tab lists.
+  const list  = document.getElementById('mut-list');
+  const tList = document.getElementById('t-mut-list');
+  list.innerHTML  = '';
+  tList.innerHTML = '';
+
+  S.mutations.forEach((m, i) => {
+    buildMutationCard(list, m, i);
+    buildMutationCard(tList, m, i);
   });
 
   setText('mut-count', `(${S.mutations.length})`);
-  syncTaintedMutations();
 }
 
-function syncTaintedMutations() {
-  const tList = document.getElementById('t-mut-list');
-  tList.innerHTML = '';
-  S.mutations.forEach(m => {
-    const card = document.createElement('div');
-    card.className = 't-mutation-card' + (m.used && m.limitedUse ? ' is-used' : '');
-
-    const nameEl = document.createElement('div');
-    nameEl.className = 't-mutation-name';
-    nameEl.textContent = m.name || '(unnamed)';
-
-    const descEl = document.createElement('div');
-    descEl.className = 't-mutation-desc';
-    descEl.textContent = m.desc || '';
-
-    card.appendChild(nameEl);
-    card.appendChild(descEl);
-
-    // Show limited-use badge if applicable
-    if (m.limitedUse) {
-      const badge = document.createElement('div');
-      badge.className = 't-mut-used-badge ' + m.usageType + (m.used ? ' used' : '');
-      badge.textContent = (m.used ? '✓ Used — ' : '') + 'Once per ' + m.usageType;
-      card.appendChild(badge);
-    }
-
-    tList.appendChild(card);
-  });
-}
+// syncTaintedMutations — now a no-op alias since renderMutations
+// builds both lists simultaneously via buildMutationCard.
+function syncTaintedMutations() { renderMutations(); }
 
 // ── END OF ENCOUNTER / SESSION ────────────────────────────────
 // Resets 'used' flags for limited-use mutations.
@@ -2243,6 +2224,7 @@ function bootSheet() {
   document.getElementById('f-feature').value   = S.remarkableFeature;
   document.getElementById('f-relic').value     = S.luckyRelic;
   document.getElementById('t-name').value      = S.name;
+  document.getElementById('t-taint-title').value = S.taintedTitle || '';
   document.getElementById('t-feature').value   = S.remarkableFeature;
   document.getElementById('t-relic').value     = S.luckyRelic;
   // Wire Enter on GM add-input
