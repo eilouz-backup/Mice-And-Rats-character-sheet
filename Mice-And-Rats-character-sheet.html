@@ -1125,6 +1125,31 @@ html, body {
   transition: all 0.15s;
 }
 .gm-no-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
+/* ─── SKILL NOTE INPUT ──────────────── */
+.skill-note-input {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px dashed var(--border-lt);
+  color: var(--text-dim);
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  font-size: 12px;
+  padding: 1px 4px 2px;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  line-height: 1.4;
+  transition: border-color 0.15s, color 0.15s;
+}
+.skill-note-input:focus { border-bottom-color: var(--amber-dim); color: var(--text); }
+.skill-note-input::placeholder { color: var(--text-dim); opacity: 0.5; }
+.tainted-sheet .skill-note-input { border-bottom-color: var(--t-border-lt); color: var(--t-text-dim); }
+.tainted-sheet .skill-note-input:focus { border-bottom-color: var(--t-red-dim); color: var(--t-text); }
+.skill-row-wrap { display: flex; flex-direction: column; flex: 1; gap: 3px; }
 </style>
 </head>
 <body>
@@ -1164,6 +1189,7 @@ html, body {
 
   <div class="sheet-header" style="margin-top:16px;">
     <div class="sheet-title">Character Sheet</div>
+    <div class="sheet-sub" id="normal-name-display">—</div>
   </div>
 
   <div class="info-grid">
@@ -1236,6 +1262,13 @@ html, body {
 
   <div class="tainted-header" style="margin-top:16px;">
     <div class="tainted-sheet-title">☠ Touched &amp; Tainted ☠</div>
+    <div class="tainted-name-line">
+      <span id="tainted-name-display">—</span><span id="tainted-comma" style="display:none;">,</span>
+      <span id="tainted-title-wrap" style="display:none;">
+        <span id="tainted-title-text" class="tainted-title-label"></span>
+        <button class="tainted-title-edit-btn" onclick="editTaintedTitle()" title="Edit title">✏️</button>
+      </span>
+    </div>
   </div>
 
   <!-- Central Tainted Skill -->
@@ -1367,6 +1400,7 @@ html, body {
  *   remarkableFeature     string   — unique physical trait
  *   luckyRelic            string   — treasured item
  *   skills                object   — { [skillName]: { die: 'd4'|'d6'|...|null, locked: bool } }
+ *   skillMuts             object   — { [skillName]: string } — brief per-skill modifier note
  *   taintedDie            string   — current Taint Die size
  *   taintedTitle          string   — randomly assigned corruption title (e.g. "the Veil")
  *   taintedWarningApproved bool    — whether GM has approved opening the tainted tab
@@ -1436,9 +1470,10 @@ let S = {
   taintedDie: null,
   injury: null,
   adaptability: 0,
-  mutationThreshold: 2,
+  mutationThreshold: 3,
   thresholdManual: false,
   mutations: [],   // [{ name, desc, limitedUse, usageType:'encounter'|'session', used }]
+  skillMuts: {},   // { [skillName]: string } — short per-skill modifier notes
   taintedWarningApproved: false,
   taintedTitle: null,
 };
@@ -1455,6 +1490,7 @@ function loadSave() {
     const p = JSON.parse(raw);
     S = { ...S, ...p };
     SKILLS.forEach(sk => { if (!S.skills[sk]) S.skills[sk] = {die:null,locked:false}; });
+    if (!S.skillMuts) S.skillMuts = {};
   } catch(e){}
 }
 
@@ -1499,6 +1535,10 @@ function buildSkillRow(skill, dice, container, isTainted) {
   nameEl.textContent = skill;
   row.appendChild(nameEl);
 
+  // Wrap die track + note input in a column
+  const wrap = document.createElement('div');
+  wrap.className = 'skill-row-wrap';
+
   const track = document.createElement('div');
   track.className = 'die-track';
 
@@ -1513,7 +1553,7 @@ function buildSkillRow(skill, dice, container, isTainted) {
     track.appendChild(btn);
   });
 
-  // Lock button (only visible for lockable dice)
+  // Lock button
   const lockBtn = document.createElement('button');
   lockBtn.className = 'lock-toggle' + (skillState.locked ? ' locked' : '');
   lockBtn.title = skillState.locked ? 'Unlock this skill' : 'Lock this skill';
@@ -1521,7 +1561,25 @@ function buildSkillRow(skill, dice, container, isTainted) {
   lockBtn.onclick = () => handleLockToggle(skill, isTainted);
   track.appendChild(lockBtn);
 
-  row.appendChild(track);
+  // Skill mutation note — shared state across both tabs
+  const noteInput = document.createElement('textarea');
+  noteInput.className = 'skill-note-input';
+  noteInput.placeholder = 'skill modifier…';
+  noteInput.value = S.skillMuts[skill] || '';
+  noteInput.rows = 1;
+  // Auto-grow height to fit content
+  const autoGrow = el => { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; };
+  noteInput.oninput = e => {
+    autoGrow(e.target);
+    S.skillMuts[skill] = e.target.value;
+    save();
+  };
+  // Set initial height after appending to DOM
+  requestAnimationFrame(() => autoGrow(noteInput));
+
+  wrap.appendChild(track);
+  wrap.appendChild(noteInput);
+  row.appendChild(wrap);
   container.appendChild(row);
 }
 
@@ -1722,13 +1780,13 @@ function buildMutationCard(container, m, i) {
     nameIn.type = 'text';
     nameIn.placeholder = 'Mutation name…';
     nameIn.value = m.name;
-    nameIn.oninput = e => { S.mutations[i].name = e.target.value; renderMutations(); save(); };
+    nameIn.oninput = e => { S.mutations[i].name = e.target.value; updateMutationCounts(); save(); };
 
     const descIn = document.createElement('textarea');
     descIn.placeholder = 'Description…';
     descIn.value = m.desc;
     descIn.rows = 2;
-    descIn.oninput = e => { S.mutations[i].desc = e.target.value; renderMutations(); save(); };
+    descIn.oninput = e => { S.mutations[i].desc = e.target.value; save(); };
 
     const limitedRow = document.createElement('div');
     limitedRow.className = 'mut-limited-row';
@@ -1782,6 +1840,12 @@ function buildMutationCard(container, m, i) {
     card.appendChild(descIn);
     card.appendChild(limitedRow);
     container.appendChild(card);
+}
+
+// Update just the mutation count badge without rebuilding any cards.
+// Used by text input handlers to avoid destroying focus on keystroke.
+function updateMutationCounts() {
+  setText('mut-count', `(${S.mutations.length})`);
 }
 
 function renderMutations() {
@@ -1953,8 +2017,9 @@ function gmAddId() {
     const empty = {
       name: safe, remarkableFeature:'', luckyRelic:'',
       skills: {}, taintedDie: null, injury: null,
-      adaptability: 0, mutationThreshold: 2,
+      adaptability: 0, mutationThreshold: 3,
       thresholdManual: false, mutations: [],
+      skillMuts: {},
       taintedWarningApproved: false, taintedTitle: null,
     };
     SKILLS.forEach(sk => empty.skills[sk] = { die:null, locked:false });
@@ -1986,7 +2051,7 @@ function gmDeleteId(id) {
       bootSheet();
     } else {
       // No characters left — clear sheet display
-      S = { name:'', remarkableFeature:'', luckyRelic:'', skills:{}, taintedDie:null, injury:null, adaptability:0, mutationThreshold:2, thresholdManual:false, mutations:[], taintedWarningApproved:false, taintedTitle:null };
+      S = { name:'', remarkableFeature:'', luckyRelic:'', skills:{}, taintedDie:null, injury:null, adaptability:0, mutationThreshold:3, thresholdManual:false, mutations:[], taintedWarningApproved:false, taintedTitle:null };
       SKILLS.forEach(sk => S.skills[sk] = {die:null, locked:false});
       bootSheet();
     }
@@ -2135,8 +2200,9 @@ function doReset() {
   S = {
     name:'', remarkableFeature:'', luckyRelic:'',
     skills: {}, taintedDie: null, injury: null,
-    adaptability: 0, mutationThreshold: 2,
+    adaptability: 0, mutationThreshold: 3,
     thresholdManual: false, mutations: [],
+    skillMuts: {},
     taintedWarningApproved: false, taintedTitle: null,
   };
   SKILLS.forEach(sk => S.skills[sk] = { die:null, locked:false });
@@ -2151,6 +2217,7 @@ function doRestore() {
     const p = JSON.parse(raw);
     S = { ...S, ...p };
     SKILLS.forEach(sk => { if (!S.skills[sk]) S.skills[sk] = {die:null,locked:false}; });
+    if (!S.skillMuts) S.skillMuts = {};
     save();
     closeReset();
     bootSheet();
