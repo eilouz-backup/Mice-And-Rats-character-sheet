@@ -1435,12 +1435,13 @@ html, body {
 // boot() cleans up 'roc_default' from localStorage so no data is ever written here.
 let STORAGE_KEY        = 'roc_default';
 let STORAGE_BACKUP_KEY = 'roc_default_backup';
+const CAMPAIGN_ID = ''; //TODO: need to be changed per file
 
 function setCharacterId(id) {
-  const safe = id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
-  STORAGE_KEY        = 'roc_' + safe;
-  STORAGE_BACKUP_KEY = 'roc_' + safe + '_backup';
-  sessionStorage.setItem('roc_character_id', safe);
+    const safe = id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
+    STORAGE_KEY = CAMPAIGN_ID  ? 'roc_' + CAMPAIGN_ID + '_' + safe  : 'roc_' + safe; //support the previose file with no prefix (id = "");
+    STORAGE_BACKUP_KEY = CAMPAIGN_ID   ? 'roc_' + CAMPAIGN_ID + '_' + safe + '_backup'   : 'roc_' + safe + '_backup';
+    sessionStorage.setItem('roc_character_id', safe);
 }
 function getStoredCharacterId() {
   return sessionStorage.getItem('roc_character_id');
@@ -1935,20 +1936,21 @@ function showGmTab() {
 }
 
 // Reserved localStorage keys that are NOT character IDs
-const RESERVED_KEYS = new Set(['roc_gm_approved', 'roc_v2', 'roc_default']);
+const RESERVED_KEYS = new Set(['roc_gm_approved', 'roc_v2', 'roc_default',  'roc_' + CAMPAIGN_ID]);
 
 // Returns all character IDs saved in localStorage.
 // Only keys of the form 'roc_<id>' that are not in RESERVED_KEYS and not backups.
 function getAllCharacterIds() {
+  const prefix = CAMPAIGN_ID ? 'roc_' + CAMPAIGN_ID + '_' : 'roc_';
   const ids = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key
-      && key.startsWith('roc_')
+      && key.startsWith(prefix)
       && !key.endsWith('_backup')
       && !RESERVED_KEYS.has(key)
     ) {
-      ids.push(key.replace('roc_', ''));
+      ids.push(key.replace(prefix, ''));
     }
   }
   return ids.sort();
