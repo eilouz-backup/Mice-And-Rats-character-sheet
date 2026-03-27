@@ -1435,7 +1435,7 @@ html, body {
 // boot() cleans up 'roc_default' from localStorage so no data is ever written here.
 let STORAGE_KEY        = 'roc_default';
 let STORAGE_BACKUP_KEY = 'roc_default_backup';
-const CAMPAIGN_ID = 'Wednesday'; //TODO: need to be changed per file
+const CAMPAIGN_ID = 'campaign1'; //TODO: need to be changed per file
 
 function setCharacterId(id) {
     const safe = id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
@@ -1941,15 +1941,16 @@ const RESERVED_KEYS = new Set(['roc_gm_approved', 'roc_v2', 'roc_default',  'roc
 // Returns all character IDs saved in localStorage.
 // Only keys of the form 'roc_<id>' that are not in RESERVED_KEYS and not backups.
 function getAllCharacterIds() {
+  const prefix = CAMPAIGN_ID ? 'roc_' + CAMPAIGN_ID + '_' : 'roc_';
   const ids = [];
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
     if (key
-      && key.startsWith('roc_')
+      && key.startsWith(prefix)
       && !key.endsWith('_backup')
       && !RESERVED_KEYS.has(key)
     ) {
-      ids.push(key.replace('roc_', ''));
+      ids.push(key.replace(prefix, ''));
     }
   }
   return ids.sort();
