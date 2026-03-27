@@ -2014,7 +2014,7 @@ function gmAddId() {
 
   // Temporarily set key to write an empty save for this id
   const safe = val.toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
-  const key = 'roc_' + safe;
+  const key = CAMPAIGN_ID ? 'roc_' + CAMPAIGN_ID + '_' + safe : 'roc_' + safe;
   if (!localStorage.getItem(key)) {
     const empty = {
       name: safe, remarkableFeature:'', luckyRelic:'',
@@ -2038,15 +2038,16 @@ function gmAddId() {
 // Delete a character ID and all associated data from localStorage
 function gmDeleteId(id) {
   const safe = id.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-  localStorage.removeItem('roc_' + safe);
-  localStorage.removeItem('roc_' + safe + '_backup');
+  const delKey = CAMPAIGN_ID ? 'roc_' + CAMPAIGN_ID + '_' + safe : 'roc_' + safe;
+  localStorage.removeItem(delKey);
+  localStorage.removeItem(delKey + '_backup');
   // If we just deleted the active character, reset to picker
   const currentId = sessionStorage.getItem('roc_character_id');
   if (currentId === safe) {
     // Deleted the active character — clear session and load first remaining
     sessionStorage.removeItem('roc_character_id');
-    STORAGE_KEY        = 'roc_default';
-    STORAGE_BACKUP_KEY = 'roc_default_backup';
+    STORAGE_KEY        = CAMPAIGN_ID ? 'roc_' + CAMPAIGN_ID + '_default' : 'roc_default';
+    STORAGE_BACKUP_KEY = CAMPAIGN_ID ? 'roc_' + CAMPAIGN_ID + '_default_backup' : 'roc_default_backup';
     const remaining = getAllCharacterIds();
     if (remaining.length > 0) {
       setCharacterId(remaining[0]);
