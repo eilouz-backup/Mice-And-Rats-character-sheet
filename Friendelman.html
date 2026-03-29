@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+/* ╔══════════════════════════════════════════════════════╗
+   ║           CAMPAIGN CONFIGURATION                    ║
+   ║  Change these three values when setting up a file.  ║
+   ╠══════════════════════════════════════════════════════╣
+   ║ CAMPAIGN_ID : unique name for this campaign          ║
+   ║   ''          = original game (no prefix)           ║
+   ║   'wednesday' = Wednesday game, etc.                ║
+   ║ GIST_ID     : GitHub Gist ID for character storage  ║
+   ║ GITHUB_TOKEN: GitHub personal access token          ║
+   ║   Needs 'gist' scope only                           ║
+   ╚══════════════════════════════════════════════════════╝ */
+const CAMPAIGN_ID   = 'Friendelman';
+const GIST_ID       = 'e84d9765c420652ab677705f193de6bb';
+const GITHUB_TOKEN  = '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';
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mice on Cheesewheels — Character Sheet</title>
@@ -1361,7 +1378,7 @@ html, body {
 <div class="tab-bar">
   <button class="tab-btn active" id="tab-normal" onclick="switchTab('normal')">Mice on Cheesewheels</button>
   <button class="tab-btn t-tab" id="tab-tainted" onclick="openTaintedTab()">☠ Touched &amp; Tainted</button>
-  <button class="tab-btn gm-tab-btn" onclick="openGmTab()" title="GM Controls">⚙</button>
+  <button class="tab-btn gm-tab-btn" id="tab-gm" onclick="openGmTab()" title="GM Controls">⚙</button>
   <button class="tab-btn reset-tab-btn" onclick="openReset()" title="Reset sheet">↺</button>
 </div>
 
@@ -1454,7 +1471,7 @@ html, body {
   </div>
 
   <div class="mutations-section">
-    <div class="sec-title">Adaptation <span class="mutation-count" id="mut-count">(0)</span></div>
+    <div class="sec-title">Mutations <span class="mutation-count" id="mut-count">(0)</span></div>
     <div class="round-btns">
       <button class="round-btn" onclick="endEncounter()">⚔ End of Encounter</button>
       <button class="round-btn session" onclick="endSession()">✦ End of Session</button>
@@ -1643,9 +1660,6 @@ html, body {
 // boot() cleans up 'roc_default' from localStorage so no data is ever written here.
 let STORAGE_KEY        = 'roc_default';
 let STORAGE_BACKUP_KEY = 'roc_default_backup';
-const CAMPAIGN_ID = 'Friendelman'; //TODO: need to be changed per file
-const GIST_ID      = 'e84d9765c420652ab677705f193de6bb';
-const GITHUB_TOKEN = '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';
 
 function setCharacterId(id) {
     const safe = id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
