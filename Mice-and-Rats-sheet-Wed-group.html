@@ -1,9 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+/* ╔══════════════════════════════════════════════════════╗
+   ║           CAMPAIGN CONFIGURATION                    ║
+   ║  Change these three values when setting up a file.  ║
+   ╠══════════════════════════════════════════════════════╣
+   ║ CAMPAIGN_ID : unique name for this campaign          ║
+   ║   ''          = original game (no prefix)           ║
+   ║   'wednesday' = Wednesday game, etc.                ║
+   ║ GIST_ID     : GitHub Gist ID for character storage  ║
+   ║ GITHUB_TOKEN: GitHub personal access token          ║
+   ║   Needs 'gist' scope only                           ║
+   ╚══════════════════════════════════════════════════════╝ */
+const CAMPAIGN_ID   = 'Wednesday';
+const GIST_ID       = 'e84d9765c420652ab677705f193de6bb';
+// GITHUB_TOKEN is entered at runtime via the token field — never store it in this file
+</script>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rats on Cheesewheels — Character Sheet</title>
+<title>Mice on Cheesewheels — Character Sheet</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -247,7 +264,6 @@ html, body {
   gap: 22px;
   margin-bottom: 22px;
 }
-  
 
 /* ─── INJURY ────────────────────────────── */
 .injury-list { display: flex; flex-direction: column; gap: 6px; }
@@ -1151,15 +1167,218 @@ html, body {
 .tainted-sheet .skill-note-input { border-bottom-color: var(--t-border-lt); color: var(--t-text-dim); }
 .tainted-sheet .skill-note-input:focus { border-bottom-color: var(--t-red-dim); color: var(--t-text); }
 .skill-row-wrap { display: flex; flex-direction: column; flex: 1; gap: 3px; }
+
+/* ─── STIRRING MODAL ─────────────────────── */
+#stirring-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 350;
+  align-items: center;
+  justify-content: center;
+}
+#stirring-overlay.open { display: flex; }
+#stirring-modal {
+  background: var(--bg3);
+  border: 1px solid var(--amber-dim);
+  border-radius: 8px;
+  padding: 36px 30px 26px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+  box-shadow: 0 0 50px rgba(200,144,30,0.15);
+  position: relative;
+}
+#stirring-close {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-dim); font-size: 16px; padding: 4px;
+  line-height: 1; transition: color 0.15s;
+}
+#stirring-close:hover { color: var(--amber); }
+#stirring-icon {
+  font-size: 24px;
+  margin-bottom: 16px;
+  letter-spacing: 8px;
+  color: var(--amber-dim);
+}
+#stirring-text {
+  font-family: 'Crimson Text', serif;
+  font-size: 17px;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 26px;
+}
+#stirring-text em {
+  color: var(--amber-lt);
+  font-style: normal;
+  font-weight: 600;
+}
+#stirring-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 11px 22px;
+  border-radius: 4px;
+  border: 1px solid var(--amber-dim);
+  background: rgba(200,144,30,0.1);
+  color: var(--amber-lt);
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: glow 2s ease-in-out infinite;
+}
+#stirring-btn:hover { background: var(--amber-dim); }
+
+
+/* ─── SMALL THRESHOLD COUNTER ───────────── */
+.thresh-counter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+.thresh-counter-btn {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--amber-dim);
+  background: transparent;
+  color: var(--amber);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.thresh-counter-btn:hover { background: var(--amber-dim); }
+.thresh-counter-val {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  color: var(--amber-lt);
+  min-width: 22px;
+  text-align: center;
+}
+.tainted-sheet .thresh-counter-btn {
+  border-color: var(--t-red-dim);
+  color: var(--t-red-lt);
+}
+.tainted-sheet .thresh-counter-btn:hover { background: var(--t-red-dim); }
+.tainted-sheet .thresh-counter-val { color: var(--t-red-lt); }
+
+
+/* ─── GIST SYNC BUTTONS ─────────────────── */
+.gist-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid var(--border-lt);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.gist-btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+.gist-btn.push:hover { border-color: var(--amber); color: var(--amber-lt); background: var(--amber-dim); }
+.gist-btn.pull:hover { border-color: var(--t-red-lt); color: var(--t-red-lt); }
+.gist-status {
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+/* ─── PULL MODAL ─────────────────────────── */
+#pull-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 250;
+  align-items: center;
+  justify-content: center;
+}
+#pull-overlay.open { display: flex; }
+#pull-modal {
+  background: var(--bg3);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 24px 24px 20px;
+  max-width: 340px;
+  width: 90%;
+  animation: fadeIn 0.18s ease;
+}
+#pull-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--amber-lt);
+  margin-bottom: 12px;
+}
+#pull-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+}
+.pull-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  transition: border-color 0.15s;
+}
+.pull-item:hover { border-color: var(--amber-dim); }
+.pull-item-name { font-style: italic; font-size: 15px; color: var(--text); }
+.pull-item-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--amber-dim);
+  background: transparent;
+  color: var(--amber);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pull-item-btn:hover { background: var(--amber-dim); color: var(--amber-lt); }
+#pull-cancel {
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid var(--border-lt);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+#pull-cancel:hover { color: var(--text); border-color: var(--text-dim); }
+
 </style>
 </head>
 <body>
 
 <!-- TAB BAR -->
 <div class="tab-bar">
-  <button class="tab-btn active" id="tab-normal" onclick="switchTab('normal')">Rats on Cheesewheels</button>
+  <button class="tab-btn active" id="tab-normal" onclick="switchTab('normal')">Mice on Cheesewheels</button>
   <button class="tab-btn t-tab" id="tab-tainted" onclick="openTaintedTab()">☠ Touched &amp; Tainted</button>
-  <button class="tab-btn gm-tab-btn" onclick="openGmTab()" title="GM Controls">⚙</button>
+  <button class="tab-btn gm-tab-btn" id="tab-gm" onclick="openGmTab()" title="GM Controls">⚙</button>
   <button class="tab-btn reset-tab-btn" onclick="openReset()" title="Reset sheet">↺</button>
 </div>
 
@@ -1170,6 +1389,10 @@ html, body {
     <option value="">— select a character —</option>
   </select>
   <span id="char-selector-none" style="display:none;">No characters yet — add one in the ⚙ GM tab</span>
+  <button class="gist-btn push" onclick="gistPush()" title="Save current character to GitHub">⬆ Save</button>
+  <button class="gist-btn pull" onclick="gistPullOpen()" title="Load a character from GitHub">⬇ Load</button>
+  <span class="gist-status" id="gist-status"></span>
+  <input type="password" id="token-input" placeholder="GitHub token…" title="Enter your GitHub token to enable Save/Load" style="background:var(--bg3);border:1px solid var(--border-lt);border-radius:4px;color:var(--text);font-family:'Crimson Text',serif;font-size:13px;padding:3px 8px;outline:none;width:130px;" oninput="sessionStorage.setItem('roc_gh_token',this.value)">
 </div>
 
 <!-- RESET MODAL -->
@@ -1223,19 +1446,22 @@ html, body {
     <!-- Adaptability -->
     <div>
       <div class="sec-title">Adaptability Points</div>
-      <div class="adapt-row">
+      <div class="adapt-row" style="align-items:flex-end;">
         <div class="adapt-counter">
-          <button class="counter-btn" onclick="changeAdapt(-1)">−</button>
-          <div class="counter-val" id="adapt-val">0</div>
-          <button class="counter-btn" onclick="changeAdapt(1)">+</button>
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);font-family:'Cinzel',serif;margin-bottom:4px;">Points</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="counter-btn" onclick="changeAdapt(-1)">−</button>
+            <div class="counter-val" id="adapt-val">0</div>
+            <button class="counter-btn" onclick="changeAdapt(1)">+</button>
+          </div>
         </div>
-        <div class="adapt-info">
-          Mutation Threshold:
-          <span class="thresh-display" id="thresh-display">
-            <span class="thresh-val" id="adapt-thresh">2</span>
-            <button class="edit-btn" title="Edit threshold" onclick="editThresh()">✏️</button>
-            <span class="manual-badge" id="thresh-manual" style="display:none;">(manual)</span>
-          </span>
+        <div class="adapt-info" style="margin-left:16px;">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);font-family:'Cinzel',serif;margin-bottom:4px;">New Adaptation Threshold</div>
+          <div class="thresh-counter">
+            <button class="thresh-counter-btn" onclick="changeThresh(-1)">−</button>
+            <div class="thresh-counter-val" id="adapt-thresh">2</div>
+            <button class="thresh-counter-btn" onclick="changeThresh(1)">+</button>
+          </div>
         </div>
       </div>
       <div class="mutation-ready" id="mut-ready" style="display:none;">
@@ -1246,7 +1472,7 @@ html, body {
   </div>
 
   <div class="mutations-section">
-    <div class="sec-title">Mutations <span class="mutation-count" id="mut-count">(0)</span></div>
+    <div class="sec-title">Adaptations <span class="mutation-count" id="mut-count">(0)</span></div>
     <div class="round-btns">
       <button class="round-btn" onclick="endEncounter()">⚔ End of Encounter</button>
       <button class="round-btn session" onclick="endSession()">✦ End of Session</button>
@@ -1321,12 +1547,12 @@ html, body {
           <button class="counter-btn" onclick="changeAdapt(1)" style="border-color:#4a1010;color:#b890e0;">+</button>
         </div>
         <div class="adapt-info" style="color:var(--t-text);">
-          Mutation Cost:
-          <span class="thresh-display" id="t-thresh-display">
-            <span class="thresh-val" id="t-adapt-thresh" style="color:#b890e0;">2</span>
-            <button class="edit-btn" title="Edit threshold" onclick="editThresh()" style="color:var(--t-text);">✏️</button>
-            <span class="manual-badge" id="t-thresh-manual" style="display:none;">(manual)</span>
-          </span>
+          <div style="font-size:13px;color:var(--t-text-dim);margin-bottom:2px;">Mutation Cost</div>
+          <div class="thresh-counter">
+            <button class="thresh-counter-btn" onclick="changeThresh(-1)">−</button>
+            <div class="thresh-counter-val" id="t-adapt-thresh">2</div>
+            <button class="thresh-counter-btn" onclick="changeThresh(1)">+</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1388,9 +1614,9 @@ html, body {
 
 <script>
 /*
- * Rats on Cheesewheels — Character Sheet
+ * Mice on Cheesewheels — Character Sheet
  * ─────────────────────────────────────
- * Two-tab HTML character sheet for the "Rats on Cheesewheels" TTRPG.
+ * Two-tab HTML character sheet for the "Mice on Cheesewheels" TTRPG.
  * Based on "Never Stop Blowing Up" by Brennan Lee Mulligan.
  *
  * STATE (S) — single source of truth, persisted to localStorage.
@@ -1408,7 +1634,6 @@ html, body {
  *   injury                string   — 'superficial'|'severe'|'chaosized'|null
  *   adaptability          number   — current adaptation points
  *   mutationThreshold     number   — points needed to claim next mutation
- *   thresholdManual       bool     — if true, claiming a mutation won't auto-increment threshold
  *   mutations             array    — [{ name, desc, limitedUse, usageType:'encounter'|'session', used }]
  *
  * TAB 1 (sheet-normal): skills d4–d10, adaptability tracker, mutations editor
@@ -1436,7 +1661,6 @@ html, body {
 // boot() cleans up 'roc_default' from localStorage so no data is ever written here.
 let STORAGE_KEY        = 'roc_default';
 let STORAGE_BACKUP_KEY = 'roc_default_backup';
-const CAMPAIGN_ID = 'Wednesday'; //TODO: need to be changed per file
 
 function setCharacterId(id) {
     const safe = id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
@@ -1472,8 +1696,7 @@ let S = {
   taintedDie: null,
   injury: null,
   adaptability: 0,
-  mutationThreshold: 3,
-  thresholdManual: false,
+  mutationThreshold: 2,
   mutations: [],   // [{ name, desc, limitedUse, usageType:'encounter'|'session', used }]
   skillMuts: {},   // { [skillName]: string } — short per-skill modifier notes
   taintedWarningApproved: false,
@@ -1571,9 +1794,14 @@ function buildSkillRow(skill, dice, container, isTainted) {
   noteInput.rows = 1;
   // Auto-grow height to fit content
   const autoGrow = el => { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; };
+  noteInput.dataset.skillNote = skill;
   noteInput.oninput = e => {
     autoGrow(e.target);
     S.skillMuts[skill] = e.target.value;
+    // Mirror to the other tab without re-render
+    document.querySelectorAll(`textarea[data-skill-note="${skill}"]`).forEach(el => {
+      if (el !== e.target) { el.value = e.target.value; autoGrow(el); }
+    });
     save();
   };
   // Set initial height after appending to DOM
@@ -1596,11 +1824,18 @@ function handleDieClick(skill, die) {
   const sk = S.skills[skill];
   if (sk.locked && sk.die !== die) {
     showToast(`${skill} is locked. Unlock it first if you want to change it.`);
-    return; // soft block only for actually changing a locked skill
+    return;
   }
+  const wasD10 = sk.die === 'd10';
   sk.die = die;
+  // Auto-lock the first time a skill reaches d10 on the normal sheet
+  const isTaintedActive = document.querySelector('.sheet.active')?.id === 'sheet-tainted';
+  if (die === 'd10' && !wasD10 && !sk.locked && !isTaintedActive) {
+    sk.locked = true;
+  }
   renderSkills();
   save();
+  if (!isTaintedActive) checkStirring();
 }
 
 function handleLockToggle(skill, isTainted) {
@@ -1627,6 +1862,8 @@ function handleLockToggle(skill, isTainted) {
   sk.locked = true;
   renderSkills();
   save();
+  // Only trigger on normal sheet, not tainted tab
+  if (!isTainted) checkStirring();
 }
 
 function renderSkills() {
@@ -1681,70 +1918,33 @@ function renderInjury() {
 }
 
 // ── ADAPTABILITY ───────────────────────────────────────────────
+function changeThresh(delta) {
+  S.mutationThreshold = Math.max(1, S.mutationThreshold + delta);
+  renderAdapt();
+  save();
+  // Check stirring when threshold reaches 5
+  const isTaintedActive = document.querySelector('.sheet.active')?.id === 'sheet-tainted';
+  if (!isTaintedActive && S.mutationThreshold >= 5) checkStirring();
+}
+
 function changeAdapt(delta) {
   S.adaptability = Math.max(0, S.adaptability + delta);
 
-  // Check if threshold reached — spend points and grow threshold
-  if (S.adaptability >= S.mutationThreshold) {
-    // just show the banner, GM/player handles the actual purchase
-  }
   renderAdapt();
   save();
 }
 function spendAdaptForMutation() {
   S.adaptability -= S.mutationThreshold;
   if (S.adaptability < 0) S.adaptability = 0;
-  if (!S.thresholdManual) S.mutationThreshold += 1;
   renderAdapt();
   addMutation();
   save();
 }
-function editThresh() {
-  // Replace whichever display is visible
-  const activeSheet = document.querySelector('.sheet.active');
-  const isTainted = activeSheet && activeSheet.id === 'sheet-tainted';
-  const display = isTainted
-    ? document.getElementById('t-thresh-display')
-    : document.getElementById('thresh-display');
-  if (!display) return; // guard: GM tab or other non-sheet active
-
-  const input = document.createElement('input');
-  input.type = 'number';
-  input.className = 'thresh-input';
-  input.value = S.mutationThreshold;
-  input.min = 1;
-  display.innerHTML = '';
-  display.appendChild(input);
-  input.focus();
-  input.select();
-  const commit = () => {
-    const v = parseInt(input.value);
-    if (!isNaN(v) && v >= 1) {
-      S.mutationThreshold = v;
-      S.thresholdManual = true;
-    }
-    renderAdapt();
-    save();
-  };
-  input.onblur = commit;
-  input.onkeydown = e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderAdapt(); };
-}
 function renderAdapt() {
-  setText('adapt-val',   S.adaptability);
-  setText('t-adapt-val', S.adaptability);
-
-  const threshHTML = (valStyle, manualStyle) => `
-    <span class="thresh-val" style="${valStyle}">${S.mutationThreshold}</span>
-    <button class="edit-btn" title="Edit threshold" onclick="editThresh()">✏️</button>
-    <span class="manual-badge" style="display:${S.thresholdManual ? 'inline' : 'none'};">(manual)</span>
-  `;
-
-  const nd = document.getElementById('thresh-display');
-  if (nd) nd.innerHTML = threshHTML('', '');
-
-  const td = document.getElementById('t-thresh-display');
-  if (td) td.innerHTML = threshHTML('color:#b890e0;', '');
-
+  setText('adapt-val',     S.adaptability);
+  setText('t-adapt-val',   S.adaptability);
+  setText('adapt-thresh',  S.mutationThreshold);
+  setText('t-adapt-thresh', S.mutationThreshold);
   const ready = S.adaptability >= S.mutationThreshold;
   document.getElementById('mut-ready').style.display = ready ? 'flex' : 'none';
 }
@@ -1865,10 +2065,6 @@ function renderMutations() {
   setText('mut-count', `(${S.mutations.length})`);
 }
 
-// syncTaintedMutations — now a no-op alias since renderMutations
-// builds both lists simultaneously via buildMutationCard.
-function syncTaintedMutations() { renderMutations(); }
-
 // ── END OF ENCOUNTER / SESSION ────────────────────────────────
 // Resets 'used' flags for limited-use mutations.
 // endEncounter: clears encounter-type mutations only.
@@ -1909,6 +2105,109 @@ function endSession() {
   });
 }
 
+
+
+// ── GIST SYNC ─────────────────────────────────────────────────
+// Push: saves current character's S object to the Gist as <characterId>.json
+// Pull: lists all .json files in the Gist, lets you pick one to load into localStorage
+
+function gistStatus(msg, isErr=false) {
+  const el = document.getElementById('gist-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isErr ? '#e04040' : 'var(--text-dim)';
+  if (msg) setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+
+function gistHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  const token = sessionStorage.getItem('roc_gh_token') || '';
+  if (token) h['Authorization'] = 'token ' + token;
+  return h;
+}
+
+async function gistPush() {
+  const charId = sessionStorage.getItem('roc_character_id');
+  if (!charId) { gistStatus('No character selected.', true); return; }
+  if (!GIST_ID) { gistStatus('GIST_ID not set.', true); return; }
+  gistStatus('Saving…');
+  try {
+    const filename = charId + '.json';
+    const body = { files: { [filename]: { content: JSON.stringify(S, null, 2) } } };
+    const res = await fetch('https://api.github.com/gists/' + GIST_ID, {
+      method: 'PATCH',
+      headers: gistHeaders(),
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(res.status);
+    gistStatus('✓ Saved ' + charId);
+  } catch(e) {
+    gistStatus('Save failed: ' + e.message, true);
+  }
+}
+
+async function gistPullOpen() {
+  if (!GIST_ID) { gistStatus('GIST_ID not set.', true); return; }
+  gistStatus('Loading list…');
+  const list = document.getElementById('pull-list');
+  list.innerHTML = '<div style="color:var(--text-dim);font-style:italic;font-size:13px;">Fetching…</div>';
+  document.getElementById('pull-overlay').classList.add('open');
+  try {
+    const res = await fetch('https://api.github.com/gists/' + GIST_ID, { headers: gistHeaders() });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const files = Object.entries(data.files).filter(([n]) => n.endsWith('.json'));
+    list.innerHTML = '';
+    gistStatus('');
+    if (files.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-style:italic;font-size:13px;">No characters saved yet.</div>';
+      return;
+    }
+    files.forEach(([filename, file]) => {
+      const charId = filename.replace('.json', '');
+      const row = document.createElement('div');
+      row.className = 'pull-item';
+      const name = document.createElement('div');
+      name.className = 'pull-item-name';
+      name.textContent = charId;
+      const btn = document.createElement('button');
+      btn.className = 'pull-item-btn';
+      btn.textContent = 'Load';
+      btn.onclick = () => gistPullLoad(charId, file.raw_url);
+      row.appendChild(name);
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+  } catch(e) {
+    list.innerHTML = '';
+    gistStatus('Load failed: ' + e.message, true);
+  }
+}
+
+function gistPullClose() {
+  document.getElementById('pull-overlay').classList.remove('open');
+}
+
+async function gistPullLoad(charId, rawUrl) {
+  gistStatus('Loading ' + charId + '…');
+  gistPullClose();
+  try {
+    const res = await fetch(rawUrl);
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    setCharacterId(charId);
+    S = { ...S, ...data };
+    SKILLS.forEach(sk => { if (!S.skills[sk]) S.skills[sk] = {die:null,locked:false}; });
+    if (!S.skillMuts) S.skillMuts = {};
+    save();
+    bootSheet();
+    renderCharacterSelector();
+    document.getElementById('char-selector').value = charId;
+    gistStatus('✓ Loaded ' + charId);
+  } catch(e) {
+    gistStatus('Load failed: ' + e.message, true);
+  }
+}
 
 // ── GM TAB ────────────────────────────────────────────────────
 // The GM tab shows all saved character IDs and lets the GM switch
@@ -2020,8 +2319,8 @@ function gmAddId() {
     const empty = {
       name: safe, remarkableFeature:'', luckyRelic:'',
       skills: {}, taintedDie: null, injury: null,
-      adaptability: 0, mutationThreshold: 3,
-      thresholdManual: false, mutations: [],
+      adaptability: 0, mutationThreshold: 2,
+      mutations: [],
       skillMuts: {},
       taintedWarningApproved: false, taintedTitle: null,
     };
@@ -2055,7 +2354,7 @@ function gmDeleteId(id) {
       bootSheet();
     } else {
       // No characters left — clear sheet display
-      S = { name:'', remarkableFeature:'', luckyRelic:'', skills:{}, taintedDie:null, injury:null, adaptability:0, mutationThreshold:3, thresholdManual:false, mutations:[], taintedWarningApproved:false, taintedTitle:null };
+      S = { name:'', remarkableFeature:'', luckyRelic:'', skills:{}, taintedDie:null, injury:null, adaptability:0, mutationThreshold:2, mutations:[], skillMuts:{}, taintedWarningApproved:false, taintedTitle:null };
       SKILLS.forEach(sk => S.skills[sk] = {die:null, locked:false});
       bootSheet();
     }
@@ -2204,8 +2503,8 @@ function doReset() {
   S = {
     name:'', remarkableFeature:'', luckyRelic:'',
     skills: {}, taintedDie: null, injury: null,
-    adaptability: 0, mutationThreshold: 3,
-    thresholdManual: false, mutations: [],
+    adaptability: 0, mutationThreshold: 2,
+    mutations: [],
     skillMuts: {},
     taintedWarningApproved: false, taintedTitle: null,
   };
@@ -2259,6 +2558,25 @@ function onSelectorChange(id) {
   bootSheet();
 }
 
+
+// ── STIRRING MODAL ─────────────────────────────────────────────
+// Fires once per session when player locks their 3rd d10 on the normal sheet.
+// Does not fire if already tainted, and never fires on the tainted tab.
+let _stirringShown = false;
+
+function checkStirring() {
+  if (_stirringShown) return;
+  if (S.taintedWarningApproved) return;
+  const d10Locks = Object.values(S.skills).filter(s => s.locked && s.die === 'd10').length;
+  if (d10Locks >= 3 || S.mutationThreshold >= 5) {
+    _stirringShown = true;
+    document.getElementById('stirring-overlay').classList.add('open');
+  }
+}
+function closeStirring() {
+  document.getElementById('stirring-overlay').classList.remove('open');
+}
+
 function boot() {
   // Clean up legacy storage keys from before the character ID system
   localStorage.removeItem('roc_v2');
@@ -2298,6 +2616,9 @@ function bootSheet() {
   document.getElementById('t-taint-title').value = S.taintedTitle || '';
   document.getElementById('t-feature').value   = S.remarkableFeature;
   document.getElementById('t-relic').value     = S.luckyRelic;
+  // Restore token field if set this session
+  const tokenInput = document.getElementById('token-input');
+  if (tokenInput) tokenInput.value = sessionStorage.getItem('roc_gh_token') || '';
   // Wire Enter on GM add-input
   const gmIn = document.getElementById('gm-add-input');
   if (gmIn) gmIn.onkeydown = e => { if (e.key === 'Enter') gmAddId(); };
@@ -2306,6 +2627,15 @@ function bootSheet() {
 boot();
 </script>
 
+
+<!-- PULL MODAL -->
+<div id="pull-overlay">
+  <div id="pull-modal">
+    <div id="pull-title">⬇ Load from GitHub</div>
+    <div id="pull-list"></div>
+    <button id="pull-cancel" onclick="gistPullClose()">Cancel</button>
+  </div>
+</div>
 
 <!-- CONFIRM MODAL (shared for end-of-encounter and end-of-session) -->
 <div id="confirm-overlay">
@@ -2331,5 +2661,20 @@ boot();
     </div>
   </div>
 </div>
+
+<!-- STIRRING MODAL — fires when 3 d10 skills are locked on normal sheet -->
+<div id="stirring-overlay">
+  <div id="stirring-modal">
+    <button id="stirring-close" onclick="closeStirring()" title="Close">✕</button>
+    <div id="stirring-icon">✦ ✦ ✦</div>
+    <div id="stirring-text">
+      Something stirs within you —<br>wild, violent, changing.<br><br>
+      The lightest <em>touch</em> shivers your soul.<br><br>
+      You are forever changed.
+    </div>
+    <button id="stirring-btn" onclick="closeStirring()">Tell the GM — you are ready to be tainted.</button>
+  </div>
+</div>
+
 </body>
 </html>
