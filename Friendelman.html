@@ -1251,6 +1251,108 @@ html, body {
 .tainted-sheet .thresh-counter-btn:hover { background: var(--t-red-dim); }
 .tainted-sheet .thresh-counter-val { color: var(--t-red-lt); }
 
+
+/* ─── GIST SYNC BUTTONS ─────────────────── */
+.gist-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border: 1px solid var(--border-lt);
+  background: transparent;
+  color: var(--text-dim);
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.gist-btn:hover { border-color: var(--amber-dim); color: var(--amber); }
+.gist-btn.push:hover { border-color: var(--amber); color: var(--amber-lt); background: var(--amber-dim); }
+.gist-btn.pull:hover { border-color: var(--t-red-lt); color: var(--t-red-lt); }
+.gist-status {
+  font-family: 'Crimson Text', serif;
+  font-style: italic;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+/* ─── PULL MODAL ─────────────────────────── */
+#pull-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 250;
+  align-items: center;
+  justify-content: center;
+}
+#pull-overlay.open { display: flex; }
+#pull-modal {
+  background: var(--bg3);
+  border: 1px solid var(--border-lt);
+  border-radius: 8px;
+  padding: 24px 24px 20px;
+  max-width: 340px;
+  width: 90%;
+  animation: fadeIn 0.18s ease;
+}
+#pull-title {
+  font-family: 'Cinzel', serif;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  color: var(--amber-lt);
+  margin-bottom: 12px;
+}
+#pull-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  margin-bottom: 14px;
+}
+.pull-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  transition: border-color 0.15s;
+}
+.pull-item:hover { border-color: var(--amber-dim); }
+.pull-item-name { font-style: italic; font-size: 15px; color: var(--text); }
+.pull-item-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--amber-dim);
+  background: transparent;
+  color: var(--amber);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.pull-item-btn:hover { background: var(--amber-dim); color: var(--amber-lt); }
+#pull-cancel {
+  width: 100%;
+  padding: 8px;
+  background: transparent;
+  border: 1px solid var(--border-lt);
+  border-radius: 4px;
+  color: var(--text-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+#pull-cancel:hover { color: var(--text); border-color: var(--text-dim); }
+
 </style>
 </head>
 <body>
@@ -1270,6 +1372,9 @@ html, body {
     <option value="">— select a character —</option>
   </select>
   <span id="char-selector-none" style="display:none;">No characters yet — add one in the ⚙ GM tab</span>
+  <button class="gist-btn push" onclick="gistPush()" title="Save current character to GitHub">⬆ Save</button>
+  <button class="gist-btn pull" onclick="gistPullOpen()" title="Load a character from GitHub">⬇ Load</button>
+  <span class="gist-status" id="gist-status"></span>
 </div>
 
 <!-- RESET MODAL -->
@@ -1349,7 +1454,7 @@ html, body {
   </div>
 
   <div class="mutations-section">
-    <div class="sec-title">Mutations <span class="mutation-count" id="mut-count">(0)</span></div>
+    <div class="sec-title">Adaptation <span class="mutation-count" id="mut-count">(0)</span></div>
     <div class="round-btns">
       <button class="round-btn" onclick="endEncounter()">⚔ End of Encounter</button>
       <button class="round-btn session" onclick="endSession()">✦ End of Session</button>
@@ -1538,7 +1643,7 @@ html, body {
 // boot() cleans up 'roc_default' from localStorage so no data is ever written here.
 let STORAGE_KEY        = 'roc_default';
 let STORAGE_BACKUP_KEY = 'roc_default_backup';
-const CAMPAIGN_ID = 'Friendelman'; //TODO: need to be changed per file
+const CAMPAIGN_ID = 'campaign1'; //TODO: need to be changed per file
 const GIST_ID      = 'e84d9765c420652ab677705f193de6bb';
 const GITHUB_TOKEN = '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';
 
@@ -1986,6 +2091,108 @@ function endSession() {
 }
 
 
+
+// ── GIST SYNC ─────────────────────────────────────────────────
+// Push: saves current character's S object to the Gist as <characterId>.json
+// Pull: lists all .json files in the Gist, lets you pick one to load into localStorage
+
+function gistStatus(msg, isErr=false) {
+  const el = document.getElementById('gist-status');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isErr ? '#e04040' : 'var(--text-dim)';
+  if (msg) setTimeout(() => { if (el.textContent === msg) el.textContent = ''; }, 3000);
+}
+
+function gistHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (GITHUB_TOKEN) h['Authorization'] = 'token ' + GITHUB_TOKEN;
+  return h;
+}
+
+async function gistPush() {
+  const charId = sessionStorage.getItem('roc_character_id');
+  if (!charId) { gistStatus('No character selected.', true); return; }
+  if (!GIST_ID) { gistStatus('GIST_ID not set.', true); return; }
+  gistStatus('Saving…');
+  try {
+    const filename = charId + '.json';
+    const body = { files: { [filename]: { content: JSON.stringify(S, null, 2) } } };
+    const res = await fetch('https://api.github.com/gists/' + GIST_ID, {
+      method: 'PATCH',
+      headers: gistHeaders(),
+      body: JSON.stringify(body)
+    });
+    if (!res.ok) throw new Error(res.status);
+    gistStatus('✓ Saved ' + charId);
+  } catch(e) {
+    gistStatus('Save failed: ' + e.message, true);
+  }
+}
+
+async function gistPullOpen() {
+  if (!GIST_ID) { gistStatus('GIST_ID not set.', true); return; }
+  gistStatus('Loading list…');
+  const list = document.getElementById('pull-list');
+  list.innerHTML = '<div style="color:var(--text-dim);font-style:italic;font-size:13px;">Fetching…</div>';
+  document.getElementById('pull-overlay').classList.add('open');
+  try {
+    const res = await fetch('https://api.github.com/gists/' + GIST_ID, { headers: gistHeaders() });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    const files = Object.entries(data.files).filter(([n]) => n.endsWith('.json'));
+    list.innerHTML = '';
+    gistStatus('');
+    if (files.length === 0) {
+      list.innerHTML = '<div style="color:var(--text-dim);font-style:italic;font-size:13px;">No characters saved yet.</div>';
+      return;
+    }
+    files.forEach(([filename, file]) => {
+      const charId = filename.replace('.json', '');
+      const row = document.createElement('div');
+      row.className = 'pull-item';
+      const name = document.createElement('div');
+      name.className = 'pull-item-name';
+      name.textContent = charId;
+      const btn = document.createElement('button');
+      btn.className = 'pull-item-btn';
+      btn.textContent = 'Load';
+      btn.onclick = () => gistPullLoad(charId, file.raw_url);
+      row.appendChild(name);
+      row.appendChild(btn);
+      list.appendChild(row);
+    });
+  } catch(e) {
+    list.innerHTML = '';
+    gistStatus('Load failed: ' + e.message, true);
+  }
+}
+
+function gistPullClose() {
+  document.getElementById('pull-overlay').classList.remove('open');
+}
+
+async function gistPullLoad(charId, rawUrl) {
+  gistStatus('Loading ' + charId + '…');
+  gistPullClose();
+  try {
+    const res = await fetch(rawUrl);
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+    setCharacterId(charId);
+    S = { ...S, ...data };
+    SKILLS.forEach(sk => { if (!S.skills[sk]) S.skills[sk] = {die:null,locked:false}; });
+    if (!S.skillMuts) S.skillMuts = {};
+    save();
+    bootSheet();
+    renderCharacterSelector();
+    document.getElementById('char-selector').value = charId;
+    gistStatus('✓ Loaded ' + charId);
+  } catch(e) {
+    gistStatus('Load failed: ' + e.message, true);
+  }
+}
+
 // ── GM TAB ────────────────────────────────────────────────────
 // The GM tab shows all saved character IDs and lets the GM switch
 // between them to inspect any character's sheet.
@@ -2401,6 +2608,15 @@ function bootSheet() {
 boot();
 </script>
 
+
+<!-- PULL MODAL -->
+<div id="pull-overlay">
+  <div id="pull-modal">
+    <div id="pull-title">⬇ Load from GitHub</div>
+    <div id="pull-list"></div>
+    <button id="pull-cancel" onclick="gistPullClose()">Cancel</button>
+  </div>
+</div>
 
 <!-- CONFIRM MODAL (shared for end-of-encounter and end-of-session) -->
 <div id="confirm-overlay">
