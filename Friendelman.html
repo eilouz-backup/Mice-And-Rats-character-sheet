@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Rats on Cheesewheels — Character Sheet</title>
+<title>Mice on Cheesewheels — Character Sheet</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -247,7 +247,6 @@ html, body {
   gap: 22px;
   margin-bottom: 22px;
 }
-  
 
 /* ─── INJURY ────────────────────────────── */
 .injury-list { display: flex; flex-direction: column; gap: 6px; }
@@ -1151,13 +1150,114 @@ html, body {
 .tainted-sheet .skill-note-input { border-bottom-color: var(--t-border-lt); color: var(--t-text-dim); }
 .tainted-sheet .skill-note-input:focus { border-bottom-color: var(--t-red-dim); color: var(--t-text); }
 .skill-row-wrap { display: flex; flex-direction: column; flex: 1; gap: 3px; }
+
+/* ─── STIRRING MODAL ─────────────────────── */
+#stirring-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.88);
+  z-index: 350;
+  align-items: center;
+  justify-content: center;
+}
+#stirring-overlay.open { display: flex; }
+#stirring-modal {
+  background: var(--bg3);
+  border: 1px solid var(--amber-dim);
+  border-radius: 8px;
+  padding: 36px 30px 26px;
+  max-width: 380px;
+  width: 90%;
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+  box-shadow: 0 0 50px rgba(200,144,30,0.15);
+  position: relative;
+}
+#stirring-close {
+  position: absolute; top: 10px; right: 12px;
+  background: none; border: none; cursor: pointer;
+  color: var(--text-dim); font-size: 16px; padding: 4px;
+  line-height: 1; transition: color 0.15s;
+}
+#stirring-close:hover { color: var(--amber); }
+#stirring-icon {
+  font-size: 24px;
+  margin-bottom: 16px;
+  letter-spacing: 8px;
+  color: var(--amber-dim);
+}
+#stirring-text {
+  font-family: 'Crimson Text', serif;
+  font-size: 17px;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.8;
+  margin-bottom: 26px;
+}
+#stirring-text em {
+  color: var(--amber-lt);
+  font-style: normal;
+  font-weight: 600;
+}
+#stirring-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  padding: 11px 22px;
+  border-radius: 4px;
+  border: 1px solid var(--amber-dim);
+  background: rgba(200,144,30,0.1);
+  color: var(--amber-lt);
+  cursor: pointer;
+  transition: all 0.2s;
+  animation: glow 2s ease-in-out infinite;
+}
+#stirring-btn:hover { background: var(--amber-dim); }
+
+
+/* ─── SMALL THRESHOLD COUNTER ───────────── */
+.thresh-counter {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 4px;
+}
+.thresh-counter-btn {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--amber-dim);
+  background: transparent;
+  color: var(--amber);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+.thresh-counter-btn:hover { background: var(--amber-dim); }
+.thresh-counter-val {
+  font-family: 'Cinzel', serif;
+  font-size: 20px;
+  color: var(--amber-lt);
+  min-width: 22px;
+  text-align: center;
+}
+.tainted-sheet .thresh-counter-btn {
+  border-color: var(--t-red-dim);
+  color: var(--t-red-lt);
+}
+.tainted-sheet .thresh-counter-btn:hover { background: var(--t-red-dim); }
+.tainted-sheet .thresh-counter-val { color: var(--t-red-lt); }
+
 </style>
 </head>
 <body>
 
 <!-- TAB BAR -->
 <div class="tab-bar">
-  <button class="tab-btn active" id="tab-normal" onclick="switchTab('normal')">Rats on Cheesewheels</button>
+  <button class="tab-btn active" id="tab-normal" onclick="switchTab('normal')">Mice on Cheesewheels</button>
   <button class="tab-btn t-tab" id="tab-tainted" onclick="openTaintedTab()">☠ Touched &amp; Tainted</button>
   <button class="tab-btn gm-tab-btn" onclick="openGmTab()" title="GM Controls">⚙</button>
   <button class="tab-btn reset-tab-btn" onclick="openReset()" title="Reset sheet">↺</button>
@@ -1223,19 +1323,22 @@ html, body {
     <!-- Adaptability -->
     <div>
       <div class="sec-title">Adaptability Points</div>
-      <div class="adapt-row">
+      <div class="adapt-row" style="align-items:flex-end;">
         <div class="adapt-counter">
-          <button class="counter-btn" onclick="changeAdapt(-1)">−</button>
-          <div class="counter-val" id="adapt-val">0</div>
-          <button class="counter-btn" onclick="changeAdapt(1)">+</button>
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);font-family:'Cinzel',serif;margin-bottom:4px;">Points</div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button class="counter-btn" onclick="changeAdapt(-1)">−</button>
+            <div class="counter-val" id="adapt-val">0</div>
+            <button class="counter-btn" onclick="changeAdapt(1)">+</button>
+          </div>
         </div>
-        <div class="adapt-info">
-          Mutation Threshold:
-          <span class="thresh-display" id="thresh-display">
-            <span class="thresh-val" id="adapt-thresh">2</span>
-            <button class="edit-btn" title="Edit threshold" onclick="editThresh()">✏️</button>
-            <span class="manual-badge" id="thresh-manual" style="display:none;">(manual)</span>
-          </span>
+        <div class="adapt-info" style="margin-left:16px;">
+          <div style="font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-dim);font-family:'Cinzel',serif;margin-bottom:4px;">New Adaptation Threshold</div>
+          <div class="thresh-counter">
+            <button class="thresh-counter-btn" onclick="changeThresh(-1)">−</button>
+            <div class="thresh-counter-val" id="adapt-thresh">2</div>
+            <button class="thresh-counter-btn" onclick="changeThresh(1)">+</button>
+          </div>
         </div>
       </div>
       <div class="mutation-ready" id="mut-ready" style="display:none;">
@@ -1321,12 +1424,12 @@ html, body {
           <button class="counter-btn" onclick="changeAdapt(1)" style="border-color:#4a1010;color:#b890e0;">+</button>
         </div>
         <div class="adapt-info" style="color:var(--t-text);">
-          Mutation Cost:
-          <span class="thresh-display" id="t-thresh-display">
-            <span class="thresh-val" id="t-adapt-thresh" style="color:#b890e0;">2</span>
-            <button class="edit-btn" title="Edit threshold" onclick="editThresh()" style="color:var(--t-text);">✏️</button>
-            <span class="manual-badge" id="t-thresh-manual" style="display:none;">(manual)</span>
-          </span>
+          <div style="font-size:13px;color:var(--t-text-dim);margin-bottom:2px;">Mutation Cost</div>
+          <div class="thresh-counter">
+            <button class="thresh-counter-btn" onclick="changeThresh(-1)">−</button>
+            <div class="thresh-counter-val" id="t-adapt-thresh">2</div>
+            <button class="thresh-counter-btn" onclick="changeThresh(1)">+</button>
+          </div>
         </div>
       </div>
     </div>
@@ -1388,9 +1491,9 @@ html, body {
 
 <script>
 /*
- * Rats on Cheesewheels — Character Sheet
+ * Mice on Cheesewheels — Character Sheet
  * ─────────────────────────────────────
- * Two-tab HTML character sheet for the "Rats on Cheesewheels" TTRPG.
+ * Two-tab HTML character sheet for the "Mice on Cheesewheels" TTRPG.
  * Based on "Never Stop Blowing Up" by Brennan Lee Mulligan.
  *
  * STATE (S) — single source of truth, persisted to localStorage.
@@ -1408,7 +1511,6 @@ html, body {
  *   injury                string   — 'superficial'|'severe'|'chaosized'|null
  *   adaptability          number   — current adaptation points
  *   mutationThreshold     number   — points needed to claim next mutation
- *   thresholdManual       bool     — if true, claiming a mutation won't auto-increment threshold
  *   mutations             array    — [{ name, desc, limitedUse, usageType:'encounter'|'session', used }]
  *
  * TAB 1 (sheet-normal): skills d4–d10, adaptability tracker, mutations editor
@@ -1437,6 +1539,8 @@ html, body {
 let STORAGE_KEY        = 'roc_default';
 let STORAGE_BACKUP_KEY = 'roc_default_backup';
 const CAMPAIGN_ID = 'Friendelman'; //TODO: need to be changed per file
+const GIST_ID      = 'e84d9765c420652ab677705f193de6bb';
+const GITHUB_TOKEN = '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';
 
 function setCharacterId(id) {
     const safe = id.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '_') || 'default';
@@ -1472,8 +1576,7 @@ let S = {
   taintedDie: null,
   injury: null,
   adaptability: 0,
-  mutationThreshold: 3,
-  thresholdManual: false,
+  mutationThreshold: 2,
   mutations: [],   // [{ name, desc, limitedUse, usageType:'encounter'|'session', used }]
   skillMuts: {},   // { [skillName]: string } — short per-skill modifier notes
   taintedWarningApproved: false,
@@ -1571,9 +1674,14 @@ function buildSkillRow(skill, dice, container, isTainted) {
   noteInput.rows = 1;
   // Auto-grow height to fit content
   const autoGrow = el => { el.style.height = 'auto'; el.style.height = el.scrollHeight + 'px'; };
+  noteInput.dataset.skillNote = skill;
   noteInput.oninput = e => {
     autoGrow(e.target);
     S.skillMuts[skill] = e.target.value;
+    // Mirror to the other tab without re-render
+    document.querySelectorAll(`textarea[data-skill-note="${skill}"]`).forEach(el => {
+      if (el !== e.target) { el.value = e.target.value; autoGrow(el); }
+    });
     save();
   };
   // Set initial height after appending to DOM
@@ -1596,11 +1704,18 @@ function handleDieClick(skill, die) {
   const sk = S.skills[skill];
   if (sk.locked && sk.die !== die) {
     showToast(`${skill} is locked. Unlock it first if you want to change it.`);
-    return; // soft block only for actually changing a locked skill
+    return;
   }
+  const wasD10 = sk.die === 'd10';
   sk.die = die;
+  // Auto-lock the first time a skill reaches d10 on the normal sheet
+  const isTaintedActive = document.querySelector('.sheet.active')?.id === 'sheet-tainted';
+  if (die === 'd10' && !wasD10 && !sk.locked && !isTaintedActive) {
+    sk.locked = true;
+  }
   renderSkills();
   save();
+  if (!isTaintedActive) checkStirring();
 }
 
 function handleLockToggle(skill, isTainted) {
@@ -1627,6 +1742,8 @@ function handleLockToggle(skill, isTainted) {
   sk.locked = true;
   renderSkills();
   save();
+  // Only trigger on normal sheet, not tainted tab
+  if (!isTainted) checkStirring();
 }
 
 function renderSkills() {
@@ -1681,70 +1798,33 @@ function renderInjury() {
 }
 
 // ── ADAPTABILITY ───────────────────────────────────────────────
+function changeThresh(delta) {
+  S.mutationThreshold = Math.max(1, S.mutationThreshold + delta);
+  renderAdapt();
+  save();
+  // Check stirring when threshold reaches 5
+  const isTaintedActive = document.querySelector('.sheet.active')?.id === 'sheet-tainted';
+  if (!isTaintedActive && S.mutationThreshold >= 5) checkStirring();
+}
+
 function changeAdapt(delta) {
   S.adaptability = Math.max(0, S.adaptability + delta);
 
-  // Check if threshold reached — spend points and grow threshold
-  if (S.adaptability >= S.mutationThreshold) {
-    // just show the banner, GM/player handles the actual purchase
-  }
   renderAdapt();
   save();
 }
 function spendAdaptForMutation() {
   S.adaptability -= S.mutationThreshold;
   if (S.adaptability < 0) S.adaptability = 0;
-  if (!S.thresholdManual) S.mutationThreshold += 1;
   renderAdapt();
   addMutation();
   save();
 }
-function editThresh() {
-  // Replace whichever display is visible
-  const activeSheet = document.querySelector('.sheet.active');
-  const isTainted = activeSheet && activeSheet.id === 'sheet-tainted';
-  const display = isTainted
-    ? document.getElementById('t-thresh-display')
-    : document.getElementById('thresh-display');
-  if (!display) return; // guard: GM tab or other non-sheet active
-
-  const input = document.createElement('input');
-  input.type = 'number';
-  input.className = 'thresh-input';
-  input.value = S.mutationThreshold;
-  input.min = 1;
-  display.innerHTML = '';
-  display.appendChild(input);
-  input.focus();
-  input.select();
-  const commit = () => {
-    const v = parseInt(input.value);
-    if (!isNaN(v) && v >= 1) {
-      S.mutationThreshold = v;
-      S.thresholdManual = true;
-    }
-    renderAdapt();
-    save();
-  };
-  input.onblur = commit;
-  input.onkeydown = e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderAdapt(); };
-}
 function renderAdapt() {
-  setText('adapt-val',   S.adaptability);
-  setText('t-adapt-val', S.adaptability);
-
-  const threshHTML = (valStyle, manualStyle) => `
-    <span class="thresh-val" style="${valStyle}">${S.mutationThreshold}</span>
-    <button class="edit-btn" title="Edit threshold" onclick="editThresh()">✏️</button>
-    <span class="manual-badge" style="display:${S.thresholdManual ? 'inline' : 'none'};">(manual)</span>
-  `;
-
-  const nd = document.getElementById('thresh-display');
-  if (nd) nd.innerHTML = threshHTML('', '');
-
-  const td = document.getElementById('t-thresh-display');
-  if (td) td.innerHTML = threshHTML('color:#b890e0;', '');
-
+  setText('adapt-val',     S.adaptability);
+  setText('t-adapt-val',   S.adaptability);
+  setText('adapt-thresh',  S.mutationThreshold);
+  setText('t-adapt-thresh', S.mutationThreshold);
   const ready = S.adaptability >= S.mutationThreshold;
   document.getElementById('mut-ready').style.display = ready ? 'flex' : 'none';
 }
@@ -1864,10 +1944,6 @@ function renderMutations() {
 
   setText('mut-count', `(${S.mutations.length})`);
 }
-
-// syncTaintedMutations — now a no-op alias since renderMutations
-// builds both lists simultaneously via buildMutationCard.
-function syncTaintedMutations() { renderMutations(); }
 
 // ── END OF ENCOUNTER / SESSION ────────────────────────────────
 // Resets 'used' flags for limited-use mutations.
@@ -2020,8 +2096,8 @@ function gmAddId() {
     const empty = {
       name: safe, remarkableFeature:'', luckyRelic:'',
       skills: {}, taintedDie: null, injury: null,
-      adaptability: 0, mutationThreshold: 3,
-      thresholdManual: false, mutations: [],
+      adaptability: 0, mutationThreshold: 2,
+      mutations: [],
       skillMuts: {},
       taintedWarningApproved: false, taintedTitle: null,
     };
@@ -2055,7 +2131,7 @@ function gmDeleteId(id) {
       bootSheet();
     } else {
       // No characters left — clear sheet display
-      S = { name:'', remarkableFeature:'', luckyRelic:'', skills:{}, taintedDie:null, injury:null, adaptability:0, mutationThreshold:3, thresholdManual:false, mutations:[], taintedWarningApproved:false, taintedTitle:null };
+      S = { name:'', remarkableFeature:'', luckyRelic:'', skills:{}, taintedDie:null, injury:null, adaptability:0, mutationThreshold:2, mutations:[], skillMuts:{}, taintedWarningApproved:false, taintedTitle:null };
       SKILLS.forEach(sk => S.skills[sk] = {die:null, locked:false});
       bootSheet();
     }
@@ -2204,8 +2280,8 @@ function doReset() {
   S = {
     name:'', remarkableFeature:'', luckyRelic:'',
     skills: {}, taintedDie: null, injury: null,
-    adaptability: 0, mutationThreshold: 3,
-    thresholdManual: false, mutations: [],
+    adaptability: 0, mutationThreshold: 2,
+    mutations: [],
     skillMuts: {},
     taintedWarningApproved: false, taintedTitle: null,
   };
@@ -2257,6 +2333,25 @@ function onSelectorChange(id) {
   if (!id) return;
   setCharacterId(id);
   bootSheet();
+}
+
+
+// ── STIRRING MODAL ─────────────────────────────────────────────
+// Fires once per session when player locks their 3rd d10 on the normal sheet.
+// Does not fire if already tainted, and never fires on the tainted tab.
+let _stirringShown = false;
+
+function checkStirring() {
+  if (_stirringShown) return;
+  if (S.taintedWarningApproved) return;
+  const d10Locks = Object.values(S.skills).filter(s => s.locked && s.die === 'd10').length;
+  if (d10Locks >= 3 || S.mutationThreshold >= 5) {
+    _stirringShown = true;
+    document.getElementById('stirring-overlay').classList.add('open');
+  }
+}
+function closeStirring() {
+  document.getElementById('stirring-overlay').classList.remove('open');
 }
 
 function boot() {
@@ -2331,5 +2426,20 @@ boot();
     </div>
   </div>
 </div>
+
+<!-- STIRRING MODAL — fires when 3 d10 skills are locked on normal sheet -->
+<div id="stirring-overlay">
+  <div id="stirring-modal">
+    <button id="stirring-close" onclick="closeStirring()" title="Close">✕</button>
+    <div id="stirring-icon">✦ ✦ ✦</div>
+    <div id="stirring-text">
+      Something stirs within you —<br>wild, violent, changing.<br><br>
+      The lightest <em>touch</em> shivers your soul.<br><br>
+      You are forever changed.
+    </div>
+    <button id="stirring-btn" onclick="closeStirring()">Tell the GM — you are ready to be tainted.</button>
+  </div>
+</div>
+
 </body>
 </html>
