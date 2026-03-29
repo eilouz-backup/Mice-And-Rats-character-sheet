@@ -15,7 +15,7 @@
    ╚══════════════════════════════════════════════════════╝ */
 const CAMPAIGN_ID   = 'Friendelman';
 const GIST_ID       = 'e84d9765c420652ab677705f193de6bb';
-const GITHUB_TOKEN  = 'ghp' + '_jcP5Zs90jCcGRCS5dZp0Cd87BiheK23PxakX';
+// GITHUB_TOKEN is entered at runtime via the token field — never store it in this file
 </script>
 
 <meta charset="UTF-8">
@@ -1392,6 +1392,7 @@ html, body {
   <button class="gist-btn push" onclick="gistPush()" title="Save current character to GitHub">⬆ Save</button>
   <button class="gist-btn pull" onclick="gistPullOpen()" title="Load a character from GitHub">⬇ Load</button>
   <span class="gist-status" id="gist-status"></span>
+  <input type="password" id="token-input" placeholder="GitHub token…" title="Enter your GitHub token to enable Save/Load" style="background:var(--bg3);border:1px solid var(--border-lt);border-radius:4px;color:var(--text);font-family:'Crimson Text',serif;font-size:13px;padding:3px 8px;outline:none;width:130px;" oninput="sessionStorage.setItem('roc_gh_token',this.value)">
 </div>
 
 <!-- RESET MODAL -->
@@ -2120,7 +2121,8 @@ function gistStatus(msg, isErr=false) {
 
 function gistHeaders() {
   const h = { 'Content-Type': 'application/json' };
-  if (GITHUB_TOKEN) h['Authorization'] = 'token ' + GITHUB_TOKEN;
+  const token = sessionStorage.getItem('roc_gh_token') || '';
+  if (token) h['Authorization'] = 'token ' + token;
   return h;
 }
 
@@ -2614,6 +2616,9 @@ function bootSheet() {
   document.getElementById('t-taint-title').value = S.taintedTitle || '';
   document.getElementById('t-feature').value   = S.remarkableFeature;
   document.getElementById('t-relic').value     = S.luckyRelic;
+  // Restore token field if set this session
+  const tokenInput = document.getElementById('token-input');
+  if (tokenInput) tokenInput.value = sessionStorage.getItem('roc_gh_token') || '';
   // Wire Enter on GM add-input
   const gmIn = document.getElementById('gm-add-input');
   if (gmIn) gmIn.onkeydown = e => { if (e.key === 'Enter') gmAddId(); };
